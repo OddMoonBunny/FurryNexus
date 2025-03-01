@@ -13,18 +13,17 @@ export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
   const [showNsfw, setShowNsfw] = useState(false);
   const [showAiGenerated, setShowAiGenerated] = useState(true);
-  const galleryId = Number(id);
 
   const { data: gallery, isLoading: isLoadingGallery } = useQuery<Gallery>({
     queryKey: [`/api/galleries/${id}`],
     queryFn: async () => {
-      const response = await fetch(`/api/galleries/${galleryId}`);
+      const response = await fetch(`/api/galleries/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch gallery");
       }
       return response.json();
     },
-    enabled: !!galleryId,
+    enabled: !!id,
   });
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
