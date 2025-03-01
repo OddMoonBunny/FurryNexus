@@ -76,23 +76,33 @@ export default function Den() {
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
-      const { id, ...artwork } = data;
-      const res = await apiRequest(
-        id ? "PATCH" : "POST",
-        id ? `/api/artworks/${id}` : "/api/artworks",
-        artwork
-      );
-      return res.json();
+      // If id exists, update the artwork instead of creating a new one
+      const id = data.id;
+      delete data.id; // Remove id from data before sending to API
+
+      if (id) {
+        const res = await apiRequest("PATCH", `/api/artworks/${id}`, data);
+        return res.json();
+      } else {
+        const res = await apiRequest("POST", "/api/artworks", data);
+        return res.json();
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/artworks`] });
       toast({
         title: "Success",
-        description: artworkForm.getValues("id")
-          ? "Artwork updated successfully!"
-          : "Artwork created successfully!",
+        description: artworkForm.getValues("id") ? "Artwork updated successfully!" : "Artwork created successfully!",
       });
-      artworkForm.reset();
+      artworkForm.reset({
+        userId: Number(id),
+        title: "",
+        description: "",
+        imageUrl: "",
+        isNsfw: false,
+        isAiGenerated: false,
+        tags: "",
+      });
     },
     onError: (error) => {
       toast({
@@ -124,6 +134,11 @@ export default function Den() {
       });
     },
   });
+
+  const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
+    const tags = data.tags.split(",").map((tag) => tag.trim());
+    artworkMutation.mutate({ ...data, tags });
+  };
 
   if (!user) {
     return <div>Loading...</div>;
@@ -234,9 +249,7 @@ export default function Den() {
                     <CardContent>
                       <Form {...artworkForm}>
                         <form
-                          onSubmit={artworkForm.handleSubmit((data) =>
-                            artworkMutation.mutate(data)
-                          )}
+                          onSubmit={artworkForm.handleSubmit(onSubmitArtwork)}
                           className="space-y-6"
                         >
                           <FormField
