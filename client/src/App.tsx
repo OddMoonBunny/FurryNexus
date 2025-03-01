@@ -14,7 +14,8 @@ import ProfilePage from "@/pages/profile";
 import GalleryPage from "@/pages/gallery";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "./lib/protected-route";
-import BrowsePage from "@/pages/browse"; // Added import for BrowsePage
+import BrowsePage from "@/pages/browse";
+import ArtistsPage from "@/pages/artists";
 
 
 function Router() {
@@ -22,7 +23,8 @@ function Router() {
     <Switch>
       <Route path="/" component={() => <Redirect to="/browse" />} /> {/* Changed redirect to /browse */}
       <Route path="/auth" component={Auth} />
-      <Route path="/browse" component={BrowsePage} /> {/* Added route for BrowsePage */}
+      <Route path="/browse" component={BrowsePage} />
+      <Route path="/artists" component={ArtistsPage} />
       <Route path="/browser" component={Browser} />
       <Route path="/artwork/:id" component={ArtworkPage} />
       <Route path="/profile/:id" component={ProfilePage} />

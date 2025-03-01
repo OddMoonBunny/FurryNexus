@@ -6,7 +6,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { User, Search, LogIn, LogOut } from "lucide-react";
+import { User, Search, LogIn, LogOut, Users } from "lucide-react"; // Users icon added here
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navbar() {

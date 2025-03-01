@@ -129,6 +129,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // User routes
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.listUsers();
+      // Don't send password hashes to the client
+      const safeUsers = users.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   app.get("/api/users/:id", async (req, res) => {
     const user = await storage.getUser(req.params.id); // Removed Number() conversion
     if (!user) return res.status(404).json({ message: "User not found" });
