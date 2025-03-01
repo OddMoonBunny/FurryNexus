@@ -16,8 +16,15 @@ export function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-[#1A1A2E] border-b border-[#BD00FF] shadow-lg">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
-          <div className="text-2xl font-bold bg-gradient-to-r from-[#FF1B8D] to-[#00F9FF] text-transparent bg-clip-text cursor-pointer">
-            Furry Nexus
+          <div className="flex items-center gap-2 cursor-pointer">
+            <img 
+              src="/Furry_Nexus_Circular_Logo.png" 
+              alt="Furry Nexus"
+              className="h-10 w-10 hover:opacity-80 transition-opacity"
+            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-[#FF1B8D] to-[#00F9FF] text-transparent bg-clip-text">
+              Furry Nexus
+            </span>
           </div>
         </Link>
 
