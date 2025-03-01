@@ -115,13 +115,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // User routes
   app.get("/api/users/:id", async (req, res) => {
-    const user = await storage.getUser(Number(req.params.id));
+    const user = await storage.getUser(req.params.id); // Removed Number() conversion
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   });
 
   app.get("/api/users/:id/artworks", async (req, res) => {
-    const artworks = await storage.getUserArtworks(Number(req.params.id));
+    const artworks = await storage.getUserArtworks(req.params.id); // Removed Number() conversion
     res.json(artworks);
   });
 
@@ -130,10 +130,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const galleries = await storage.listAllGalleries();
     res.json(galleries);
   });
-  
-  app.get("/api/users/:userId/galleries", async (req, res) => {
-    const galleries = await storage.listUserGalleries(Number(req.params.userId));
-    res.json(galleries);
+
+  app.get("/api/galleries/:id", async (req, res) => {
+    try {
+      console.log(`Getting gallery with ID: ${req.params.id}`);
+      const gallery = await storage.getGallery(req.params.id);
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+      console.log("Gallery found:", gallery);
+      res.json(gallery);
+    } catch (error) {
+      console.error("Error fetching gallery:", error);
+      res.status(500).json({ message: "Failed to fetch gallery" });
+    }
   });
 
   app.post("/api/galleries", requireAuth, async (req, res) => {
@@ -172,20 +182,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this route handler near the other gallery routes
-  app.get("/api/galleries/:id", async (req, res) => {
-    try {
-      console.log(`Getting gallery with ID: ${req.params.id}`);
-      const gallery = await storage.getGallery(req.params.id);
-      if (!gallery) {
-        return res.status(404).json({ message: "Gallery not found" });
-      }
-      console.log("Gallery found:", gallery);
-      res.json(gallery);
-    } catch (error) {
-      console.error("Error fetching gallery:", error);
-      res.status(500).json({ message: "Failed to fetch gallery" });
-    }
+  app.get("/api/users/:userId/galleries", async (req, res) => {
+    const galleries = await storage.listUserGalleries(req.params.userId); // Removed Number() conversion
+    res.json(galleries);
   });
 
   // Gallery-Artwork management routes

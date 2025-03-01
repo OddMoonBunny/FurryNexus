@@ -3,16 +3,10 @@ import { useParams } from "wouter";
 import type { Artwork, Gallery } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArtGrid } from "@/components/artwork/art-grid";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
 
   const { data: gallery, isLoading: isLoadingGallery } = useQuery<Gallery>({
     queryKey: [`/api/galleries/${id}`],
@@ -31,7 +25,7 @@ export default function GalleryPage() {
   });
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/galleries/${id}/artworks`, { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
+    queryKey: [`/api/galleries/${id}/artworks`],
     queryFn: async () => {
       console.log(`Fetching gallery artworks with ID: ${id}`);
       const response = await fetch(`/api/galleries/${id}/artworks`);
@@ -82,25 +76,7 @@ export default function GalleryPage() {
             </CardContent>
           )}
         </Card>
-        <div className="flex items-center gap-6 mb-8">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="nsfw"
-              checked={showNsfw}
-              onCheckedChange={setShowNsfw}
-            />
-            <Label htmlFor="nsfw">Show NSFW</Label>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="ai"
-              checked={showAiGenerated}
-              onCheckedChange={setShowAiGenerated}
-            />
-            <Label htmlFor="ai">Show AI Generated</Label>
-          </div>
-        </div>
         {artworks?.length ? (
           <ArtGrid artworks={artworks} />
         ) : (

@@ -4,7 +4,7 @@ import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
@@ -12,13 +12,13 @@ export interface IStorage {
   getArtwork(id: string): Promise<Artwork | undefined>;
   listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]>;
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
-  getUserArtworks(userId: number): Promise<Artwork[]>;
+  getUserArtworks(userId: string): Promise<Artwork[]>;
   updateArtwork(id: string, artwork: InsertArtwork): Promise<Artwork>;
   deleteArtwork(id: string): Promise<void>;
 
   // Gallery operations
   getGallery(id: string): Promise<Gallery | undefined>;
-  listUserGalleries(userId: number): Promise<Gallery[]>;
+  listUserGalleries(userId: string): Promise<Gallery[]>;
   createGallery(gallery: InsertGallery): Promise<Gallery>;
   updateGallery(id: string, gallery: Partial<InsertGallery>): Promise<Gallery>;
   deleteGallery(id: string): Promise<void>;
@@ -32,7 +32,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
@@ -71,7 +71,7 @@ export class DatabaseStorage implements IStorage {
     return artwork;
   }
 
-  async getUserArtworks(userId: number): Promise<Artwork[]> {
+  async getUserArtworks(userId: string): Promise<Artwork[]> {
     return await db.select().from(artworks).where(eq(artworks.userId, userId));
   }
 
@@ -87,6 +87,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteArtwork(id: string): Promise<void> {
+    // First delete any gallery associations
+    await db.delete(galleryArtworks).where(eq(galleryArtworks.artworkId, id));
+    // Then delete the artwork
     await db.delete(artworks).where(eq(artworks.id, id));
   }
 
@@ -96,7 +99,7 @@ export class DatabaseStorage implements IStorage {
     return gallery;
   }
 
-  async listUserGalleries(userId: number): Promise<Gallery[]> {
+  async listUserGalleries(userId: string): Promise<Gallery[]> {
     return await db.select().from(galleries).where(eq(galleries.userId, userId));
   }
 
@@ -117,14 +120,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteGallery(id: string): Promise<void> {
+    // First delete gallery-artwork associations
+    await db.delete(galleryArtworks).where(eq(galleryArtworks.galleryId, id));
+    // Then delete the gallery
     await db.delete(galleries).where(eq(galleries.id, id));
   }
 
-  async listAllGalleries(): Promise<Gallery[]> { // Added this function
+  async listAllGalleries(): Promise<Gallery[]> {
     return await db.select().from(galleries);
   }
 
+  // Gallery-Artwork operations
   async addArtworkToGallery(galleryId: string, artworkId: string): Promise<void> {
+    console.log(`Adding artwork ${artworkId} to gallery ${galleryId}`);
     await db.insert(galleryArtworks).values({
       galleryId,
       artworkId,
@@ -132,6 +140,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeArtworkFromGallery(galleryId: string, artworkId: string): Promise<void> {
+    console.log(`Removing artwork ${artworkId} from gallery ${galleryId}`);
     await db.delete(galleryArtworks)
       .where(and(
         eq(galleryArtworks.galleryId, galleryId),
@@ -140,15 +149,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async listGalleryArtworks(galleryId: string): Promise<Artwork[]> {
-    const result = await db
-      .select({
-        artwork: artworks
-      })
-      .from(galleryArtworks)
-      .innerJoin(artworks, eq(artworks.id, galleryArtworks.artworkId))
-      .where(eq(galleryArtworks.galleryId, galleryId));
+    console.log(`Fetching artworks for gallery ${galleryId}`);
+    try {
+      const result = await db
+        .select({
+          artwork: artworks
+        })
+        .from(galleryArtworks)
+        .innerJoin(artworks, eq(artworks.id, galleryArtworks.artworkId))
+        .where(eq(galleryArtworks.galleryId, galleryId));
 
-    return result.map(r => r.artwork);
+      console.log(`Found ${result.length} artworks for gallery ${galleryId}`);
+      console.log('Artwork IDs:', result.map(r => r.artwork.id));
+      return result.map(r => r.artwork);
+    } catch (error) {
+      console.error('Error fetching gallery artworks:', error);
+      throw error;
+    }
   }
 }
 

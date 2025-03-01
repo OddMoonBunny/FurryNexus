@@ -28,6 +28,13 @@ import { z } from "zod";
 import { motion } from "framer-motion";
 import { Upload, Trash, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
@@ -197,6 +204,26 @@ export default function Den() {
     },
   });
 
+  const addToGalleryMutation = useMutation({
+    mutationFn: async ({ galleryId, artworkId }: { galleryId: string; artworkId: string }) => {
+      await apiRequest("POST", `/api/galleries/${galleryId}/artworks/${artworkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Artwork added to gallery successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add artwork to gallery",
+      });
+    },
+  });
+
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
     artworkMutation.mutate({ ...data, id: selectedArtworkId });
   };
@@ -283,6 +310,40 @@ export default function Den() {
                               </Badge>
                             )}
                           </div>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mt-2 w-full bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add to Gallery
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="bg-[#2D2B55] border-[#BD00FF]">
+                              <DialogHeader>
+                                <DialogTitle className="text-white">Add to Gallery</DialogTitle>
+                              </DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                {galleries?.map((gallery) => (
+                                  <Button
+                                    key={gallery.id}
+                                    variant="outline"
+                                    className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                                    onClick={() => {
+                                      addToGalleryMutation.mutate({
+                                        galleryId: gallery.id.toString(),
+                                        artworkId: artwork.id.toString(),
+                                      });
+                                    }}
+                                  >
+                                    {gallery.name}
+                                  </Button>
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         </CardContent>
                       </Card>
                     ))}
