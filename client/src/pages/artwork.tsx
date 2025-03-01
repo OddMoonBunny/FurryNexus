@@ -47,8 +47,8 @@ export default function ArtworkPage() {
 
   return (
     <div className="min-h-screen bg-[#1A1A2E] pt-24">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-end mb-4">
+      <div className="container mx-auto px-4 relative">
+        <div className="sticky top-4 z-50 flex justify-end mb-4">
           <Button
             variant="outline"
             size="icon"
