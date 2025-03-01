@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
@@ -9,16 +8,20 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showNsfw, setShowNsfw] = useState(false);
+  const [showAiGenerated, setShowAiGenerated] = useState(true);
   const { user } = useAuth();
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: ["/api/artworks"],
+    queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
     queryFn: async () => {
       console.log("Fetching artworks");
-      const response = await fetch("/api/artworks");
+      const response = await fetch(`/api/artworks?isNsfw=${showNsfw}&isAiGenerated=${showAiGenerated}`);
       if (!response.ok) {
         throw new Error("Failed to fetch artworks");
       }
@@ -76,6 +79,26 @@ export default function Browser() {
             </TabsList>
 
             <TabsContent value="artworks">
+              <div className="flex items-center gap-6 mb-8">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="nsfw"
+                    checked={showNsfw}
+                    onCheckedChange={setShowNsfw}
+                  />
+                  <Label htmlFor="nsfw" className="text-white">Show NSFW</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="ai"
+                    checked={showAiGenerated}
+                    onCheckedChange={setShowAiGenerated}
+                  />
+                  <Label htmlFor="ai" className="text-white">Show AI Generated</Label>
+                </div>
+              </div>
+
               {isLoadingArtworks ? (
                 <div className="text-center py-12">
                   <div className="animate-pulse text-[#00F9FF]">Loading artworks...</div>
