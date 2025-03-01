@@ -44,6 +44,16 @@ export function Navbar() {
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/browse">
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      <Search className="h-4 w-4" />
+                      <span>Browse</span>
+                    </div>
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
               {user && (
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild>
