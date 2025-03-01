@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import Home from "@/pages/home";
 import Browser from "@/pages/browser";
 import Gallery from "@/pages/gallery";
-import Upload from "@/pages/upload";
+import Editor from "@/pages/editor";
 import Den from "@/pages/den";
 import Auth from "@/pages/auth";
 import NotFound from "@/pages/not-found";
@@ -20,7 +20,7 @@ function Router() {
       <Route path="/auth" component={Auth} />
       <Route path="/browser" component={Browser} />
       <ProtectedRoute path="/gallery" component={Gallery} />
-      <ProtectedRoute path="/upload" component={Upload} />
+      <ProtectedRoute path="/editor" component={Editor} />
       <ProtectedRoute path="/den/:id" component={Den} />
       <Route component={NotFound} />
     </Switch>

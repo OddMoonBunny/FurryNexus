@@ -6,7 +6,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Palette, Upload, User, Search, LogIn, LogOut } from "lucide-react";
+import { Palette, Edit2, User, Search, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navbar() {
@@ -48,10 +48,10 @@ export function Navbar() {
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link href="/upload">
+                      <Link href="/editor">
                         <div className="flex items-center gap-2 cursor-pointer">
-                          <Upload className="h-4 w-4" />
-                          <span>Upload</span>
+                          <Edit2 className="h-4 w-4" />
+                          <span>Editor</span>
                         </div>
                       </Link>
                     </NavigationMenuLink>
