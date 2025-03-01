@@ -48,7 +48,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Artwork operations
-  async getArtwork(id: number): Promise<Artwork | undefined> {
+  async getArtwork(id: string): Promise<Artwork | undefined> {
     const [artwork] = await db.select().from(artworks).where(eq(artworks.id, id));
     return artwork;
   }
@@ -75,7 +75,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(artworks).where(eq(artworks.userId, userId));
   }
 
-  async updateArtwork(id: number, updateArtwork: InsertArtwork): Promise<Artwork> {
+  async updateArtwork(id: string, updateArtwork: InsertArtwork): Promise<Artwork> {
     const [artwork] = await db
       .update(artworks)
       .set(updateArtwork)
@@ -86,12 +86,12 @@ export class DatabaseStorage implements IStorage {
     return artwork;
   }
 
-  async deleteArtwork(id: number): Promise<void> {
+  async deleteArtwork(id: string): Promise<void> {
     await db.delete(artworks).where(eq(artworks.id, id));
   }
 
   // Gallery operations
-  async getGallery(id: number): Promise<Gallery | undefined> {
+  async getGallery(id: string): Promise<Gallery | undefined> {
     const [gallery] = await db.select().from(galleries).where(eq(galleries.id, id));
     return gallery;
   }
@@ -105,7 +105,7 @@ export class DatabaseStorage implements IStorage {
     return gallery;
   }
 
-  async updateGallery(id: number, galleryUpdate: Partial<InsertGallery>): Promise<Gallery> {
+  async updateGallery(id: string, galleryUpdate: Partial<InsertGallery>): Promise<Gallery> {
     const [gallery] = await db
       .update(galleries)
       .set(galleryUpdate)
@@ -116,7 +116,7 @@ export class DatabaseStorage implements IStorage {
     return gallery;
   }
 
-  async deleteGallery(id: number): Promise<void> {
+  async deleteGallery(id: string): Promise<void> {
     await db.delete(galleries).where(eq(galleries.id, id));
   }
 
@@ -124,14 +124,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(galleries);
   }
 
-  async addArtworkToGallery(galleryId: number, artworkId: number): Promise<void> {
+  async addArtworkToGallery(galleryId: string, artworkId: string): Promise<void> {
     await db.insert(galleryArtworks).values({
       galleryId,
       artworkId,
     });
   }
 
-  async removeArtworkFromGallery(galleryId: number, artworkId: number): Promise<void> {
+  async removeArtworkFromGallery(galleryId: string, artworkId: string): Promise<void> {
     await db.delete(galleryArtworks)
       .where(and(
         eq(galleryArtworks.galleryId, galleryId),
@@ -139,7 +139,7 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async listGalleryArtworks(galleryId: number): Promise<Artwork[]> {
+  async listGalleryArtworks(galleryId: string): Promise<Artwork[]> {
     const result = await db
       .select({
         artwork: artworks

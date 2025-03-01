@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/artworks/:id", async (req, res) => {
-    const artwork = await storage.getArtwork(Number(req.params.id));
+    const artwork = await storage.getArtwork(req.params.id);
     if (!artwork) return res.status(404).json({ message: "Artwork not found" });
     res.json(artwork);
   });
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/artworks/:id", requireAuth, async (req, res) => {
     try {
-      const artwork = await storage.getArtwork(Number(req.params.id));
+      const artwork = await storage.getArtwork(req.params.id);
       if (!artwork) {
         return res.status(404).json({ message: "Artwork not found" });
       }
@@ -82,7 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id
       });
 
-      const updated = await storage.updateArtwork(Number(req.params.id), updatedArtwork);
+      const updated = await storage.updateArtwork(req.params.id, updatedArtwork);
       res.json(updated);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/artworks/:id", requireAuth, async (req, res) => {
     try {
-      const artwork = await storage.getArtwork(Number(req.params.id));
+      const artwork = await storage.getArtwork(req.params.id);
       if (!artwork) {
         return res.status(404).json({ message: "Artwork not found" });
       }
@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to delete this artwork" });
       }
 
-      await storage.deleteArtwork(Number(req.params.id));
+      await storage.deleteArtwork(req.params.id);
       res.sendStatus(200);
     } catch (error) {
       res.status(500).json({ message: "Failed to delete artwork" });
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/galleries/:id", requireAuth, async (req, res) => {
     try {
-      const gallery = await storage.getGallery(Number(req.params.id));
+      const gallery = await storage.getGallery(req.params.id);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
@@ -165,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to delete this gallery" });
       }
 
-      await storage.deleteGallery(Number(req.params.id));
+      await storage.deleteGallery(req.params.id);
       res.sendStatus(200);
     } catch (error) {
       res.status(500).json({ message: "Failed to delete gallery" });
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add this route handler near the other gallery routes
   app.get("/api/galleries/:id", async (req, res) => {
     try {
-      const gallery = await storage.getGallery(Number(req.params.id));
+      const gallery = await storage.getGallery(req.params.id);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Gallery-Artwork management routes
   app.post("/api/galleries/:galleryId/artworks/:artworkId", requireAuth, async (req, res) => {
     try {
-      const gallery = await storage.getGallery(Number(req.params.galleryId));
+      const gallery = await storage.getGallery(req.params.galleryId);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
@@ -199,8 +199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.addArtworkToGallery(
-        Number(req.params.galleryId),
-        Number(req.params.artworkId)
+        req.params.galleryId,
+        req.params.artworkId
       );
       res.sendStatus(200);
     } catch (error) {
@@ -210,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/galleries/:galleryId/artworks/:artworkId", requireAuth, async (req, res) => {
     try {
-      const gallery = await storage.getGallery(Number(req.params.galleryId));
+      const gallery = await storage.getGallery(req.params.galleryId);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
@@ -221,8 +221,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.removeArtworkFromGallery(
-        Number(req.params.galleryId),
-        Number(req.params.artworkId)
+        req.params.galleryId,
+        req.params.artworkId
       );
       res.sendStatus(200);
     } catch (error) {
@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/galleries/:id/artworks", async (req, res) => {
     try {
-      const artworks = await storage.listGalleryArtworks(Number(req.params.id));
+      const artworks = await storage.listGalleryArtworks(req.params.id);
       res.json(artworks);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch gallery artworks" });

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, integer, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -15,7 +15,7 @@ export const users = pgTable("users", {
 });
 
 export const artworks = pgTable("artworks", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   title: text("title").notNull(),
   description: text("description"),
@@ -27,7 +27,7 @@ export const artworks = pgTable("artworks", {
 });
 
 export const galleries = pgTable("galleries", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description"),
@@ -36,8 +36,8 @@ export const galleries = pgTable("galleries", {
 
 // Junction table for gallery_artworks
 export const galleryArtworks = pgTable("gallery_artworks", {
-  galleryId: integer("gallery_id").notNull().references(() => galleries.id),
-  artworkId: integer("artwork_id").notNull().references(() => artworks.id),
+  galleryId: uuid("gallery_id").notNull().references(() => galleries.id),
+  artworkId: uuid("artwork_id").notNull().references(() => artworks.id),
   addedAt: timestamp("added_at").notNull().defaultNow()
 });
 
