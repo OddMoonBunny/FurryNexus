@@ -160,7 +160,9 @@ export default function Den() {
                     {artworks?.map((artwork) => (
                       <Card
                         key={artwork.id}
-                        className="bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors"
+                        className={`bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors ${
+                          artworkForm.watch("id") === artwork.id ? "border-[#FF1B8D]" : ""
+                        }`}
                         onClick={() => {
                           artworkForm.reset({
                             ...artwork,
@@ -205,10 +207,29 @@ export default function Den() {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <Card className="bg-[#2D2B55] border-[#BD00FF]">
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-2xl text-white">
                         {artworkForm.watch("id") ? `Edit Artwork: ${artworkForm.watch("title")}` : "Create New Artwork"}
                       </CardTitle>
+                      {artworkForm.watch("id") && (
+                        <Button
+                          variant="outline"
+                          className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                          onClick={() => {
+                            artworkForm.reset({
+                              userId: Number(id),
+                              title: "",
+                              description: "",
+                              imageUrl: "",
+                              isNsfw: false,
+                              isAiGenerated: false,
+                              tags: "",
+                            });
+                          }}
+                        >
+                          New Artwork
+                        </Button>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <Form {...artworkForm}>
