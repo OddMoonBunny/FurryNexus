@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  displayName: text("display_name"),  // Removed .nullable() as text() is nullable by default
+  displayName: text("display_name"),
   bio: text("bio"),
   profileImage: text("profile_image"),
   bannerImage: text("banner_image"),
@@ -31,8 +31,14 @@ export const galleries = pgTable("galleries", {
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description"),
-  artworkIds: integer("artwork_ids").array().notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow()
+});
+
+// Junction table for gallery_artworks
+export const galleryArtworks = pgTable("gallery_artworks", {
+  galleryId: integer("gallery_id").notNull().references(() => galleries.id),
+  artworkId: integer("artwork_id").notNull().references(() => artworks.id),
+  addedAt: timestamp("added_at").notNull().defaultNow()
 });
 
 // Define relationships
@@ -41,17 +47,30 @@ export const usersRelations = relations(users, ({ many }) => ({
   galleries: many(galleries)
 }));
 
-export const artworksRelations = relations(artworks, ({ one }) => ({
+export const artworksRelations = relations(artworks, ({ one, many }) => ({
   user: one(users, {
     fields: [artworks.userId],
     references: [users.id]
-  })
+  }),
+  galleries: many(galleryArtworks)
 }));
 
-export const galleriesRelations = relations(galleries, ({ one }) => ({
+export const galleriesRelations = relations(galleries, ({ one, many }) => ({
   user: one(users, {
     fields: [galleries.userId],
     references: [users.id]
+  }),
+  artworks: many(galleryArtworks)
+}));
+
+export const galleryArtworksRelations = relations(galleryArtworks, ({ one }) => ({
+  gallery: one(galleries, {
+    fields: [galleryArtworks.galleryId],
+    references: [galleries.id]
+  }),
+  artwork: one(artworks, {
+    fields: [galleryArtworks.artworkId],
+    references: [artworks.id]
   })
 }));
 
@@ -85,3 +104,4 @@ export type Artwork = typeof artworks.$inferSelect;
 export type InsertArtwork = z.infer<typeof insertArtworkSchema>;
 export type Gallery = typeof galleries.$inferSelect;
 export type InsertGallery = z.infer<typeof insertGallerySchema>;
+export type GalleryArtwork = typeof galleryArtworks.$inferSelect;

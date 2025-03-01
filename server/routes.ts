@@ -167,6 +167,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Gallery-Artwork management routes
+  app.post("/api/galleries/:galleryId/artworks/:artworkId", requireAuth, async (req, res) => {
+    try {
+      const gallery = await storage.getGallery(Number(req.params.galleryId));
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Ensure users can only modify their own galleries
+      if (gallery.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to modify this gallery" });
+      }
+
+      await storage.addArtworkToGallery(
+        Number(req.params.galleryId),
+        Number(req.params.artworkId)
+      );
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add artwork to gallery" });
+    }
+  });
+
+  app.delete("/api/galleries/:galleryId/artworks/:artworkId", requireAuth, async (req, res) => {
+    try {
+      const gallery = await storage.getGallery(Number(req.params.galleryId));
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Ensure users can only modify their own galleries
+      if (gallery.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to modify this gallery" });
+      }
+
+      await storage.removeArtworkFromGallery(
+        Number(req.params.galleryId),
+        Number(req.params.artworkId)
+      );
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove artwork from gallery" });
+    }
+  });
+
+  app.get("/api/galleries/:id/artworks", async (req, res) => {
+    try {
+      const artworks = await storage.listGalleryArtworks(Number(req.params.id));
+      res.json(artworks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch gallery artworks" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

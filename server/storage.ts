@@ -1,7 +1,6 @@
-import { type User, type InsertUser, type Artwork, type InsertArtwork, type Gallery, type InsertGallery } from "@shared/schema";
+import { type User, type InsertUser, type Artwork, type InsertArtwork, type Gallery, type InsertGallery, users, artworks, galleries, galleryArtworks } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
-import { users, artworks, galleries } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -23,6 +22,11 @@ export interface IStorage {
   createGallery(gallery: InsertGallery): Promise<Gallery>;
   updateGallery(id: number, gallery: Partial<InsertGallery>): Promise<Gallery>;
   deleteGallery(id: number): Promise<void>;
+
+  // Gallery-Artwork operations
+  addArtworkToGallery(galleryId: number, artworkId: number): Promise<void>;
+  removeArtworkFromGallery(galleryId: number, artworkId: number): Promise<void>;
+  listGalleryArtworks(galleryId: number): Promise<Artwork[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -113,6 +117,33 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGallery(id: number): Promise<void> {
     await db.delete(galleries).where(eq(galleries.id, id));
+  }
+
+  async addArtworkToGallery(galleryId: number, artworkId: number): Promise<void> {
+    await db.insert(galleryArtworks).values({
+      galleryId,
+      artworkId,
+    });
+  }
+
+  async removeArtworkFromGallery(galleryId: number, artworkId: number): Promise<void> {
+    await db.delete(galleryArtworks)
+      .where(and(
+        eq(galleryArtworks.galleryId, galleryId),
+        eq(galleryArtworks.artworkId, artworkId)
+      ));
+  }
+
+  async listGalleryArtworks(galleryId: number): Promise<Artwork[]> {
+    const result = await db
+      .select({
+        artwork: artworks
+      })
+      .from(galleryArtworks)
+      .innerJoin(artworks, eq(artworks.id, galleryArtworks.artworkId))
+      .where(eq(galleryArtworks.galleryId, galleryId));
+
+    return result.map(r => r.artwork);
   }
 }
 
