@@ -34,12 +34,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Artwork routes
   app.get("/api/artworks", async (req, res) => {
-    const filters = {
-      isNsfw: req.query.isNsfw === "true",
-      isAiGenerated: req.query.isAiGenerated === "true"
-    };
-    const artworks = await storage.listArtworks(filters);
-    res.json(artworks);
+    try {
+      // Parse query parameters properly
+      const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
+
+      // Only apply NSFW filter when explicitly set to false
+      if (req.query.isNsfw === "false") {
+        filters.isNsfw = false;
+      }
+
+      // Handle AI Generated filter normally
+      if (req.query.isAiGenerated !== undefined) {
+        filters.isAiGenerated = req.query.isAiGenerated === "true";
+      }
+
+      console.log("Server applying filters:", filters);
+      const artworks = await storage.listArtworks(filters);
+      res.json(artworks);
+    } catch (error) {
+      console.error("Error fetching artworks:", error);
+      res.status(500).json({ error: "Failed to fetch artworks" });
+    }
   });
 
   app.get("/api/artworks/:id", async (req, res) => {
