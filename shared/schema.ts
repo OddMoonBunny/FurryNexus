@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  displayName: text("display_name"),
+  displayName: text("display_name"),  // Removed .nullable() as text() is nullable by default
   bio: text("bio"),
   profileImage: text("profile_image"),
   bannerImage: text("banner_image"),
