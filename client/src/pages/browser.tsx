@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,12 +74,6 @@ export default function Browser() {
               >
                 Galleries
               </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
-              >
-                Settings
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="artworks">
@@ -92,7 +84,7 @@ export default function Browser() {
               ) : !artworks?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
-                  <p className="text-gray-400">Try adjusting your search terms or content filters in Settings</p>
+                  <p className="text-gray-400">Try adjusting your search terms or content filters in your den</p>
                 </div>
               ) : (
                 <ArtGrid artworks={artworks} />
@@ -127,33 +119,6 @@ export default function Browser() {
                   ))}
                 </div>
               )}
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <Card className="bg-[#2D2B55] border-[#BD00FF]">
-                <CardHeader>
-                  <CardTitle className="text-xl text-white">Content Preferences</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center space-x-4">
-                    <Switch
-                      id="nsfw"
-                      checked={showNsfw}
-                      onCheckedChange={setShowNsfw}
-                    />
-                    <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <Switch
-                      id="ai"
-                      checked={showAiGenerated}
-                      onCheckedChange={setShowAiGenerated}
-                    />
-                    <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
           </Tabs>
         </div>
