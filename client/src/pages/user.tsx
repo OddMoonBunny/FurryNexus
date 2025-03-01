@@ -4,6 +4,7 @@ import type { User, Artwork, Gallery } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtGrid } from "@/components/artwork/art-grid";
+import { ProfileHeader } from "@/components/den/profile-header";
 
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
@@ -44,20 +45,8 @@ export default function UserPage() {
 
   return (
     <div className="min-h-screen bg-[#1A1A2E] pt-24">
+      <ProfileHeader user={user} />
       <div className="container mx-auto px-4">
-        <Card className="bg-[#2D2B55] border-[#BD00FF] mb-8">
-          <CardHeader>
-            <CardTitle className="text-3xl text-white">
-              {user.displayName || user.username}
-            </CardTitle>
-          </CardHeader>
-          {user.bio && (
-            <CardContent>
-              <p className="text-gray-200">{user.bio}</p>
-            </CardContent>
-          )}
-        </Card>
-
         <Tabs defaultValue="artworks">
           <TabsList>
             <TabsTrigger value="artworks">Artworks</TabsTrigger>
