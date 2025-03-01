@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth } from "./auth";
+import { upload, getFileUrl } from "./services/upload";
+import path from "path";
+import express from "express";
 
 // Middleware to ensure user is authenticated
 function requireAuth(req: Request, res: Response, next: NextFunction) {
@@ -16,6 +19,18 @@ function requireAuth(req: Request, res: Response, next: NextFunction) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   setupAuth(app);
+
+  // Serve uploaded files statically
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+  // File upload endpoint
+  app.post("/api/upload", requireAuth, upload.single("file"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const fileUrl = getFileUrl(req.file.filename);
+    res.json({ url: fileUrl });
+  });
 
   // Artwork routes
   app.get("/api/artworks", async (req, res) => {

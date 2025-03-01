@@ -26,6 +26,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { motion } from "framer-motion";
+import { Upload } from "lucide-react";
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str: string) => str.split(",").map((s: string) => s.trim())),
@@ -186,6 +187,59 @@ export default function Den() {
                           </FormItem>
                         )}
                       />
+                      <div className="space-y-4">
+                        <FormLabel>Upload Artwork</FormLabel>
+                        <div className="flex items-center gap-4">
+                          <Input
+                            type="file"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+
+                              const formData = new FormData();
+                              formData.append("file", file);
+
+                              try {
+                                const res = await fetch("/api/upload", {
+                                  method: "POST",
+                                  body: formData,
+                                });
+
+                                if (!res.ok) throw new Error("Upload failed");
+
+                                const data = await res.json();
+                                artworkForm.setValue("imageUrl", data.url);
+
+                                toast({
+                                  title: "Success",
+                                  description: "Image uploaded successfully!",
+                                });
+                              } catch (error) {
+                                toast({
+                                  variant: "destructive",
+                                  title: "Error",
+                                  description: "Failed to upload image",
+                                });
+                              }
+                            }}
+                            className="hidden"
+                            id="artwork-upload"
+                            accept="image/jpeg,image/png,image/gif"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => document.getElementById("artwork-upload")?.click()}
+                            className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Choose File
+                          </Button>
+                          {artworkForm.watch("imageUrl") && (
+                            <span className="text-sm text-gray-400">Image selected</span>
+                          )}
+                        </div>
+                      </div>
 
                       <div className="flex gap-6">
                         <FormField
