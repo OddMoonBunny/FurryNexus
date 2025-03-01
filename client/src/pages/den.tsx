@@ -390,6 +390,39 @@ export default function Den() {
                       )}
                     </CardHeader>
                     <CardContent>
+                      {/* Preview Window */}
+                      {artworkForm.watch("imageUrl") && (
+                        <div className="mb-6">
+                          <div className="text-sm text-gray-400 mb-2">Preview</div>
+                          <div className="aspect-video bg-[#1A1A2E] rounded-md overflow-hidden border border-[#BD00FF] shadow-lg">
+                            <img
+                              src={artworkForm.watch("imageUrl")}
+                              alt="Artwork preview"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            {artworkForm.watch("isNsfw") && (
+                              <Badge variant="outline" className="border-[#FF1B8D] text-[#FF1B8D]">
+                                NSFW
+                              </Badge>
+                            )}
+                            {artworkForm.watch("isAiGenerated") && (
+                              <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF]">
+                                AI Generated
+                              </Badge>
+                            )}
+                            {artworkForm.watch("tags") && 
+                              artworkForm.watch("tags").split(",").map((tag: string) => (
+                                <Badge key={tag.trim()} variant="outline">
+                                  {tag.trim()}
+                                </Badge>
+                              ))
+                            }
+                          </div>
+                        </div>
+                      )}
+
                       <Form {...artworkForm}>
                         <form
                           onSubmit={artworkForm.handleSubmit(onSubmitArtwork)}
