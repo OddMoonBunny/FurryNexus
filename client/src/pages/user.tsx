@@ -4,7 +4,7 @@ import type { User, Artwork, Gallery } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtGrid } from "@/components/artwork/art-grid";
-import { ProfileHeader } from "@/components/den/profile-header";
+import { Link } from "wouter";
 
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,12 +45,41 @@ export default function UserPage() {
 
   return (
     <div className="min-h-screen bg-[#1A1A2E] pt-24">
-      <ProfileHeader user={user} />
+      {/* User Profile Header */}
       <div className="container mx-auto px-4">
-        <Tabs defaultValue="artworks">
-          <TabsList>
-            <TabsTrigger value="artworks">Artworks</TabsTrigger>
-            <TabsTrigger value="galleries">Galleries</TabsTrigger>
+        <Card className="bg-[#2D2B55] border-[#BD00FF] mb-8">
+          <CardHeader className="flex items-start gap-6">
+            <img
+              src={user.profileImage || "https://images.unsplash.com/photo-1636690424408-4330adc3e583"}
+              alt={user.displayName || user.username}
+              className="w-24 h-24 rounded-full border-4 border-[#FF1B8D]"
+            />
+            <div>
+              <CardTitle className="text-3xl text-white">
+                {user.displayName || user.username}
+              </CardTitle>
+              <p className="text-sm text-gray-300 mt-1">@{user.username}</p>
+              {user.bio && (
+                <p className="text-gray-200 mt-4">{user.bio}</p>
+              )}
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Tabs defaultValue="artworks" className="w-full">
+          <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-6 rounded-none">
+            <TabsTrigger
+              value="artworks"
+              className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
+            >
+              Artworks
+            </TabsTrigger>
+            <TabsTrigger
+              value="galleries"
+              className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
+            >
+              Galleries
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="artworks">
@@ -66,14 +95,18 @@ export default function UserPage() {
           <TabsContent value="galleries">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {galleries?.map((gallery) => (
-                <Card key={gallery.id} className="bg-[#2D2B55] border-[#BD00FF]">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300">{gallery.description}</p>
-                  </CardContent>
-                </Card>
+                <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
+                  <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
+                    </CardHeader>
+                    {gallery.description && (
+                      <CardContent>
+                        <p className="text-gray-300 line-clamp-2">{gallery.description}</p>
+                      </CardContent>
+                    )}
+                  </Card>
+                </Link>
               ))}
             </div>
           </TabsContent>
