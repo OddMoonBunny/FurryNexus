@@ -42,6 +42,7 @@ export default function Den() {
   const { id } = useParams<{ id: string }>();
   const [showNsfw, setShowNsfw] = useState(false);
   const [showAiGenerated, setShowAiGenerated] = useState(true);
+  const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: user } = useQuery<User>({
@@ -81,7 +82,6 @@ export default function Den() {
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
-      // If editing, ensure we're sending the correct format
       const { id, ...artwork } = data;
 
       // Ensure tags is properly formatted
@@ -101,9 +101,7 @@ export default function Den() {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/artworks`] });
       toast({
         title: "Success",
-        description: artworkForm.getValues("id")
-          ? "Artwork updated successfully!"
-          : "Artwork created successfully!",
+        description: selectedArtworkId ? "Artwork updated successfully!" : "Artwork created successfully!",
       });
       artworkForm.reset({
         userId: Number(id),
@@ -114,6 +112,7 @@ export default function Den() {
         isAiGenerated: false,
         tags: "",
       });
+      setSelectedArtworkId(null);
     },
     onError: (error) => {
       toast({
@@ -147,7 +146,7 @@ export default function Den() {
   });
 
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
-    artworkMutation.mutate(data);
+    artworkMutation.mutate({ ...data, id: selectedArtworkId });
   };
 
   if (!user) {
@@ -186,9 +185,10 @@ export default function Den() {
                       <Card
                         key={artwork.id}
                         className={`bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors ${
-                          artworkForm.watch("id") === artwork.id ? "border-[#FF1B8D]" : ""
+                          selectedArtworkId === artwork.id ? "border-[#FF1B8D]" : ""
                         }`}
                         onClick={() => {
+                          setSelectedArtworkId(artwork.id);
                           artworkForm.reset({
                             ...artwork,
                             tags: artwork.tags.join(", "),
@@ -234,9 +234,9 @@ export default function Den() {
                   <Card className="bg-[#2D2B55] border-[#BD00FF]">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-2xl text-white">
-                        {artworkForm.watch("id") ? `Edit Artwork: ${artworkForm.watch("title")}` : "Create New Artwork"}
+                        {selectedArtworkId ? "Edit Artwork" : "Create New Artwork"}
                       </CardTitle>
-                      {artworkForm.watch("id") && (
+                      {selectedArtworkId && (
                         <Button
                           variant="outline"
                           className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
@@ -250,6 +250,7 @@ export default function Den() {
                               isAiGenerated: false,
                               tags: "",
                             });
+                            setSelectedArtworkId(null);
                           }}
                         >
                           New Artwork
@@ -412,7 +413,7 @@ export default function Den() {
                             >
                               {artworkMutation.isPending
                                 ? "Saving..."
-                                : artworkForm.watch("id")
+                                : selectedArtworkId
                                 ? "Update Artwork"
                                 : "Create Artwork"}
                             </Button>
