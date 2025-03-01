@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import type { Artwork, User } from "@shared/schema";
@@ -75,11 +76,15 @@ export default function ArtworkPage() {
                   AI Generated
                 </Badge>
               )}
-              {artwork.tags.map((tag) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
-                </Badge>
-              ))}
+              {artwork.tags && artwork.tags.length > 0 && artwork.tags[0] !== "" && (
+                <>
+                  {artwork.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="border-[#BD00FF] text-[#BD00FF]">
+                      {tag}
+                    </Badge>
+                  ))}
+                </>
+              )}
             </div>
 
             {artwork.description && (
