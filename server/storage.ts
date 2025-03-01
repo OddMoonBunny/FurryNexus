@@ -55,30 +55,30 @@ export class DatabaseStorage implements IStorage {
 
   async listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]> {
     let query = db.select().from(artworks);
-    
+
     // Create an array of conditions
     const conditions = [];
-    
-    // Filter NSFW content based on the isNsfw filter
-    if (filters?.isNsfw !== undefined) {
-      if (filters.isNsfw === false) {
+
+    // Handle the combination of NSFW and AI Generated filters
+    if (filters?.isNsfw !== undefined || filters?.isAiGenerated !== undefined) {
+      if (!filters.isNsfw) {
         // If NSFW is disabled, only show non-NSFW content
         conditions.push(eq(artworks.isNsfw, false));
       }
-      // If isNsfw is true, we don't add any condition (show both NSFW and non-NSFW)
+
+      if (filters.isAiGenerated !== undefined) {
+        // Show AI or non-AI content based on the filter
+        conditions.push(eq(artworks.isAiGenerated, filters.isAiGenerated));
+      }
     }
-    
-    // Filter AI Generated content based on the isAiGenerated filter
-    if (filters?.isAiGenerated !== undefined) {
-      conditions.push(eq(artworks.isAiGenerated, filters.isAiGenerated));
-    }
-    
+
+    console.log("Applied filters:", filters, "Building query with conditions:", conditions.length);
+
     // Apply all conditions with AND logic if there are any
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
-    
-    console.log("Applied filters:", filters, "Building query with conditions:", conditions.length);
+
     return await query;
   }
 
