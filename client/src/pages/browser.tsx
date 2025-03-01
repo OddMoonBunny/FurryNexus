@@ -76,29 +76,15 @@ export default function Browser() {
               >
                 Galleries
               </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
+              >
+                Settings
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="artworks">
-              <div className="flex items-center gap-6 mb-8">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="nsfw"
-                    checked={showNsfw}
-                    onCheckedChange={setShowNsfw}
-                  />
-                  <Label htmlFor="nsfw" className="text-white">Show NSFW</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="ai"
-                    checked={showAiGenerated}
-                    onCheckedChange={setShowAiGenerated}
-                  />
-                  <Label htmlFor="ai" className="text-white">Show AI Generated</Label>
-                </div>
-              </div>
-
               {isLoadingArtworks ? (
                 <div className="text-center py-12">
                   <div className="animate-pulse text-[#00F9FF]">Loading artworks...</div>
@@ -106,7 +92,7 @@ export default function Browser() {
               ) : !artworks?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
-                  <p className="text-gray-400">Try adjusting your search terms</p>
+                  <p className="text-gray-400">Try adjusting your search terms or content filters in Settings</p>
                 </div>
               ) : (
                 <ArtGrid artworks={artworks} />
@@ -124,7 +110,7 @@ export default function Browser() {
                   <p className="text-gray-400">Try adjusting your search terms</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {galleries.map((gallery) => (
                     <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
                       <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
@@ -141,6 +127,33 @@ export default function Browser() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <Card className="bg-[#2D2B55] border-[#BD00FF]">
+                <CardHeader>
+                  <CardTitle className="text-xl text-white">Content Preferences</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <Switch
+                      id="nsfw"
+                      checked={showNsfw}
+                      onCheckedChange={setShowNsfw}
+                    />
+                    <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <Switch
+                      id="ai"
+                      checked={showAiGenerated}
+                      onCheckedChange={setShowAiGenerated}
+                    />
+                    <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
