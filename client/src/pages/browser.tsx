@@ -17,22 +17,28 @@ export default function Browser() {
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks"],
     queryFn: async () => {
+      console.log("Fetching artworks");
       const response = await fetch("/api/artworks");
       if (!response.ok) {
         throw new Error("Failed to fetch artworks");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Artworks data:", data);
+      return data;
     }
   });
 
   const { data: galleries, isLoading: isLoadingGalleries } = useQuery<Gallery[]>({
     queryKey: ["/api/galleries"],
     queryFn: async () => {
+      console.log("Fetching galleries");
       const response = await fetch("/api/galleries");
       if (!response.ok) {
         throw new Error("Failed to fetch galleries");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Galleries data:", data);
+      return data;
     }
   });
 

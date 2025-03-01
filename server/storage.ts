@@ -9,25 +9,25 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   // Artwork operations
-  getArtwork(id: number): Promise<Artwork | undefined>;
+  getArtwork(id: string): Promise<Artwork | undefined>;
   listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]>;
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
   getUserArtworks(userId: number): Promise<Artwork[]>;
-  updateArtwork(id: number, artwork: InsertArtwork): Promise<Artwork>;
-  deleteArtwork(id: number): Promise<void>;
+  updateArtwork(id: string, artwork: InsertArtwork): Promise<Artwork>;
+  deleteArtwork(id: string): Promise<void>;
 
   // Gallery operations
-  getGallery(id: number): Promise<Gallery | undefined>;
+  getGallery(id: string): Promise<Gallery | undefined>;
   listUserGalleries(userId: number): Promise<Gallery[]>;
   createGallery(gallery: InsertGallery): Promise<Gallery>;
-  updateGallery(id: number, gallery: Partial<InsertGallery>): Promise<Gallery>;
-  deleteGallery(id: number): Promise<void>;
-  listAllGalleries(): Promise<Gallery[]>; // Added this line
+  updateGallery(id: string, gallery: Partial<InsertGallery>): Promise<Gallery>;
+  deleteGallery(id: string): Promise<void>;
+  listAllGalleries(): Promise<Gallery[]>;
 
   // Gallery-Artwork operations
-  addArtworkToGallery(galleryId: number, artworkId: number): Promise<void>;
-  removeArtworkFromGallery(galleryId: number, artworkId: number): Promise<void>;
-  listGalleryArtworks(galleryId: number): Promise<Artwork[]>;
+  addArtworkToGallery(galleryId: string, artworkId: string): Promise<void>;
+  removeArtworkFromGallery(galleryId: string, artworkId: string): Promise<void>;
+  listGalleryArtworks(galleryId: string): Promise<Artwork[]>;
 }
 
 export class DatabaseStorage implements IStorage {

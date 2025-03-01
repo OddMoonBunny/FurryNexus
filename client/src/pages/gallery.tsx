@@ -17,11 +17,15 @@ export default function GalleryPage() {
   const { data: gallery, isLoading: isLoadingGallery } = useQuery<Gallery>({
     queryKey: [`/api/galleries/${id}`],
     queryFn: async () => {
+      console.log(`Fetching gallery with ID: ${id}`);
       const response = await fetch(`/api/galleries/${id}`);
       if (!response.ok) {
+        console.error(`Failed to fetch gallery: ${response.status}`);
         throw new Error("Failed to fetch gallery");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Gallery data:", data);
+      return data;
     },
     enabled: !!id,
   });
@@ -29,11 +33,15 @@ export default function GalleryPage() {
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: [`/api/galleries/${id}/artworks`, { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
     queryFn: async () => {
+      console.log(`Fetching gallery artworks with ID: ${id}`);
       const response = await fetch(`/api/galleries/${id}/artworks`);
       if (!response.ok) {
+        console.error(`Failed to fetch gallery artworks: ${response.status}`);
         throw new Error("Failed to fetch gallery artworks");
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Gallery artworks data:", data);
+      return data;
     },
     enabled: !!gallery,
   });
