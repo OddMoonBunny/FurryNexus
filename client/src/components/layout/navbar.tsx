@@ -12,7 +12,6 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-[#1A1A2E] border-b border-[#BD00FF] shadow-lg">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Changed logo to use a div instead of an anchor */}
         <Link href="/">
           <div className="text-2xl font-bold bg-gradient-to-r from-[#FF1B8D] to-[#00F9FF] text-transparent bg-clip-text cursor-pointer">
             SynthFur
@@ -21,6 +20,16 @@ export function Navbar() {
 
         <NavigationMenu>
           <NavigationMenuList className="gap-2">
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link href="/browser">
+                  <div className="flex items-center gap-2 cursor-pointer">
+                    <Search className="h-4 w-4" />
+                    <span>Browse</span>
+                  </div>
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link href="/gallery">

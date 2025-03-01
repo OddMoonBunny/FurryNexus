@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Navbar } from "@/components/layout/navbar";
 import { AuthProvider } from "@/hooks/use-auth";
 import Home from "@/pages/home";
+import Browser from "@/pages/browser";
 import Gallery from "@/pages/gallery";
 import Upload from "@/pages/upload";
 import Den from "@/pages/den";
@@ -17,6 +18,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
+      <ProtectedRoute path="/browser" component={Browser} />
       <ProtectedRoute path="/gallery" component={Gallery} />
       <ProtectedRoute path="/upload" component={Upload} />
       <ProtectedRoute path="/den/:id" component={Den} />
