@@ -56,9 +56,11 @@ export class DatabaseStorage implements IStorage {
   async listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]> {
     let query = db.select().from(artworks);
 
-    if (filters?.isNsfw !== undefined) {
-      query = query.where(eq(artworks.isNsfw, filters.isNsfw));
+    // Only show NSFW content if the filter explicitly allows it
+    if (filters?.isNsfw === false) {
+      query = query.where(eq(artworks.isNsfw, false));
     }
+    
     if (filters?.isAiGenerated !== undefined) {
       query = query.where(eq(artworks.isAiGenerated, filters.isAiGenerated));
     }
