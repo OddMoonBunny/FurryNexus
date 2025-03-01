@@ -167,6 +167,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add this route handler near the other gallery routes
+  app.get("/api/galleries/:id", async (req, res) => {
+    try {
+      const gallery = await storage.getGallery(Number(req.params.id));
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+      res.json(gallery);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch gallery" });
+    }
+  });
+
   // Gallery-Artwork management routes
   app.post("/api/galleries/:galleryId/artworks/:artworkId", requireAuth, async (req, res) => {
     try {
