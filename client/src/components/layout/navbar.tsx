@@ -24,6 +24,16 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <NavigationMenu>
             <NavigationMenuList className="gap-2">
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link href="/browser">
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      <Search className="h-4 w-4" />
+                      <span>Gallery</span>
+                    </div>
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
               {user && (
                 <NavigationMenuItem>
                   <NavigationMenuLink asChild>
