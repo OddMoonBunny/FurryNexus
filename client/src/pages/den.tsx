@@ -147,231 +147,239 @@ export default function Den() {
           </TabsContent>
 
           <TabsContent value="editor">
-            {artworks?.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                No artworks to edit
-              </div>
-            ) : (
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {artworks?.map((artwork) => (
-                    <Card
-                      key={artwork.id}
-                      className="bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors"
-                      onClick={() => {
-                        artworkForm.reset({
-                          ...artwork,
-                          tags: artwork.tags.join(", "),
-                        });
-                      }}
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-lg text-white">{artwork.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="aspect-video bg-[#1A1A2E] rounded-md overflow-hidden">
-                          <img
-                            src={artwork.imageUrl}
-                            alt={artwork.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="mt-4 flex gap-2">
-                          {artwork.isNsfw && (
-                            <Badge variant="outline" className="border-[#FF1B8D] text-[#FF1B8D]">
-                              NSFW
-                            </Badge>
-                          )}
-                          {artwork.isAiGenerated && (
-                            <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF]">
-                              AI Generated
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {artworkForm.watch("id") && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-2xl mx-auto"
-                  >
-                    <Card className="bg-[#2D2B55] border-[#BD00FF]">
-                      <CardHeader>
-                        <CardTitle className="text-2xl text-white">
-                          Edit Artwork: {artworkForm.watch("title")}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Form {...artworkForm}>
-                          <form
-                            onSubmit={artworkForm.handleSubmit((data) =>
-                              artworkMutation.mutate(data)
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Artwork Grid */}
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-white">Your Artworks</h2>
+                {artworks?.length === 0 ? (
+                  <div className="text-center py-12 text-gray-400">
+                    No artworks to edit
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {artworks?.map((artwork) => (
+                      <Card
+                        key={artwork.id}
+                        className="bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors"
+                        onClick={() => {
+                          artworkForm.reset({
+                            ...artwork,
+                            tags: artwork.tags.join(", "),
+                          });
+                        }}
+                      >
+                        <CardHeader>
+                          <CardTitle className="text-lg text-white">{artwork.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="aspect-video bg-[#1A1A2E] rounded-md overflow-hidden">
+                            <img
+                              src={artwork.imageUrl}
+                              alt={artwork.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="mt-4 flex gap-2">
+                            {artwork.isNsfw && (
+                              <Badge variant="outline" className="border-[#FF1B8D] text-[#FF1B8D]">
+                                NSFW
+                              </Badge>
                             )}
-                            className="space-y-6"
-                          >
-                            <FormField
-                              control={artworkForm.control}
-                              name="title"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Title</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Enter artwork title"
-                                      className="bg-[#1A1A2E] border-[#BD00FF]"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={artworkForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Description</FormLabel>
-                                  <FormControl>
-                                    <Textarea
-                                      placeholder="Describe your artwork"
-                                      className="bg-[#1A1A2E] border-[#BD00FF]"
-                                      {...field}
-                                      value={field.value || ""}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <div className="space-y-4">
-                              <FormLabel>Upload Artwork</FormLabel>
-                              <div className="flex items-center gap-4">
-                                <Input
-                                  type="file"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-
-                                    const formData = new FormData();
-                                    formData.append("file", file);
-
-                                    try {
-                                      const res = await fetch("/api/upload", {
-                                        method: "POST",
-                                        body: formData,
-                                      });
-
-                                      if (!res.ok) throw new Error("Upload failed");
-
-                                      const data = await res.json();
-                                      artworkForm.setValue("imageUrl", data.url);
-
-                                      toast({
-                                        title: "Success",
-                                        description: "Image uploaded successfully!",
-                                      });
-                                    } catch (error) {
-                                      toast({
-                                        variant: "destructive",
-                                        title: "Error",
-                                        description: "Failed to upload image",
-                                      });
-                                    }
-                                  }}
-                                  className="hidden"
-                                  id="artwork-upload"
-                                  accept="image/jpeg,image/png,image/gif"
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  onClick={() => document.getElementById("artwork-upload")?.click()}
-                                  className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
-                                >
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  Choose File
-                                </Button>
-                                {artworkForm.watch("imageUrl") && (
-                                  <span className="text-sm text-gray-400">Image selected</span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="flex gap-6">
-                              <FormField
-                                control={artworkForm.control}
-                                name="isNsfw"
-                                render={({ field }) => (
-                                  <FormItem className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Switch
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                      />
-                                    </FormControl>
-                                    <Label>NSFW Content</Label>
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={artworkForm.control}
-                                name="isAiGenerated"
-                                render={({ field }) => (
-                                  <FormItem className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Switch
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                      />
-                                    </FormControl>
-                                    <Label>AI Generated</Label>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-
-                            <FormField
-                              control={artworkForm.control}
-                              name="tags"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Tags (comma-separated)</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="digital, synthwave, furry"
-                                      className="bg-[#1A1A2E] border-[#BD00FF]"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <div className="flex justify-end">
-                              <Button
-                                type="submit"
-                                disabled={artworkMutation.isPending}
-                                className="bg-[#FF1B8D] hover:bg-[#ff1b8d]/80"
-                              >
-                                {artworkMutation.isPending ? "Creating..." : "Create Artwork"}
-                              </Button>
-                            </div>
-                          </form>
-                        </Form>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                            {artwork.isAiGenerated && (
+                              <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF]">
+                                AI Generated
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </div>
-            )}
+
+              {/* Edit Form */}
+              <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Card className="bg-[#2D2B55] border-[#BD00FF]">
+                    <CardHeader>
+                      <CardTitle className="text-2xl text-white">
+                        {artworkForm.watch("id") ? `Edit Artwork: ${artworkForm.watch("title")}` : "Create New Artwork"}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...artworkForm}>
+                        <form
+                          onSubmit={artworkForm.handleSubmit((data) =>
+                            artworkMutation.mutate(data)
+                          )}
+                          className="space-y-6"
+                        >
+                          <FormField
+                            control={artworkForm.control}
+                            name="title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Enter artwork title"
+                                    className="bg-[#1A1A2E] border-[#BD00FF]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={artworkForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Describe your artwork"
+                                    className="bg-[#1A1A2E] border-[#BD00FF]"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="space-y-4">
+                            <FormLabel>Upload Artwork</FormLabel>
+                            <div className="flex items-center gap-4">
+                              <Input
+                                type="file"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+
+                                  const formData = new FormData();
+                                  formData.append("file", file);
+
+                                  try {
+                                    const res = await fetch("/api/upload", {
+                                      method: "POST",
+                                      body: formData,
+                                    });
+
+                                    if (!res.ok) throw new Error("Upload failed");
+
+                                    const data = await res.json();
+                                    artworkForm.setValue("imageUrl", data.url);
+
+                                    toast({
+                                      title: "Success",
+                                      description: "Image uploaded successfully!",
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      variant: "destructive",
+                                      title: "Error",
+                                      description: "Failed to upload image",
+                                    });
+                                  }
+                                }}
+                                className="hidden"
+                                id="artwork-upload"
+                                accept="image/jpeg,image/png,image/gif"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => document.getElementById("artwork-upload")?.click()}
+                                className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Choose File
+                              </Button>
+                              {artworkForm.watch("imageUrl") && (
+                                <span className="text-sm text-gray-400">Image selected</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-6">
+                            <FormField
+                              control={artworkForm.control}
+                              name="isNsfw"
+                              render={({ field }) => (
+                                <FormItem className="flex items-center gap-2">
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <Label>NSFW Content</Label>
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={artworkForm.control}
+                              name="isAiGenerated"
+                              render={({ field }) => (
+                                <FormItem className="flex items-center gap-2">
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                  <Label>AI Generated</Label>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={artworkForm.control}
+                            name="tags"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Tags (comma-separated)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="digital, synthwave, furry"
+                                    className="bg-[#1A1A2E] border-[#BD00FF]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="flex justify-end">
+                            <Button
+                              type="submit"
+                              disabled={artworkMutation.isPending}
+                              className="bg-[#FF1B8D] hover:bg-[#ff1b8d]/80"
+                            >
+                              {artworkMutation.isPending
+                                ? "Saving..."
+                                : artworkForm.watch("id")
+                                ? "Update Artwork"
+                                : "Create Artwork"}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="galleries">
