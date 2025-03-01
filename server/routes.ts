@@ -110,6 +110,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/artworks/:id", requireAuth, async (req, res) => {
     try {
+      console.log(`Attempting to delete artwork with ID: ${req.params.id}`);
+      
       const artwork = await storage.getArtwork(req.params.id);
       if (!artwork) {
         return res.status(404).json({ message: "Artwork not found" });
@@ -121,9 +123,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.deleteArtwork(req.params.id);
+      console.log(`Successfully processed delete request for artwork ID: ${req.params.id}`);
       res.sendStatus(200);
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete artwork" });
+      console.error(`Error deleting artwork with ID: ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to delete artwork", error: String(error) });
     }
   });
 

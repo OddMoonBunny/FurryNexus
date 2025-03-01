@@ -108,10 +108,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteArtwork(id: string): Promise<void> {
-    // First delete any gallery associations
-    await db.delete(galleryArtworks).where(eq(galleryArtworks.artworkId, id));
-    // Then delete the artwork
-    await db.delete(artworks).where(eq(artworks.id, id));
+    try {
+      // First delete any comments associated with the artwork
+      await db.delete(comments).where(eq(comments.artworkId, id));
+      
+      // Then delete any gallery associations
+      await db.delete(galleryArtworks).where(eq(galleryArtworks.artworkId, id));
+      
+      // Finally delete the artwork
+      await db.delete(artworks).where(eq(artworks.id, id));
+      
+      console.log(`Successfully deleted artwork with ID: ${id}`);
+    } catch (error) {
+      console.error(`Error deleting artwork with ID: ${id}:`, error);
+      throw error;
+    }
   }
 
   // Gallery operations
