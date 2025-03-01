@@ -3,7 +3,6 @@ import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { ArtGrid } from "@/components/artwork/art-grid";
 import type { Artwork, Gallery } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
