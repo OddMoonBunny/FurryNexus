@@ -38,12 +38,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse query parameters properly
       const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
 
-      // Only apply NSFW filter when explicitly set to false
-      if (req.query.isNsfw === "false") {
-        filters.isNsfw = false;
+      // Parse the NSFW parameter - string "true"/"false" to boolean
+      if (req.query.isNsfw !== undefined) {
+        filters.isNsfw = req.query.isNsfw === "true";
       }
 
-      // Handle AI Generated filter normally
+      // Handle AI Generated filter
       if (req.query.isAiGenerated !== undefined) {
         filters.isAiGenerated = req.query.isAiGenerated === "true";
       }
