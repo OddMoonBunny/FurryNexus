@@ -55,7 +55,6 @@ export default function AuthPage() {
     defaultValues: {
       username: "",
       password: "",
-      displayName: "",
     },
   });
 
@@ -161,23 +160,6 @@ export default function AuthPage() {
                                 {...field}
                                 className="bg-[#1A1A2E] border-[#BD00FF]"
                                 placeholder="Choose a username"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={registerForm.control}
-                        name="displayName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Display Name</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                className="bg-[#1A1A2E] border-[#BD00FF]"
-                                placeholder="Choose a display name"
                               />
                             </FormControl>
                             <FormMessage />
