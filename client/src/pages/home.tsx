@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { MOCK_IMAGES } from "@/lib/constants";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -40,24 +39,6 @@ export default function Home() {
               </Button>
             </Link>
           </motion.div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-16">
-          {MOCK_IMAGES.artworks.slice(0, 8).map((image, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-              className="aspect-square rounded-lg overflow-hidden"
-            >
-              <img
-                src={image}
-                alt={`Featured artwork ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          ))}
         </div>
       </div>
     </div>

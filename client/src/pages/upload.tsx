@@ -19,7 +19,7 @@ import {
 import { insertArtworkSchema, type InsertArtwork } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { MOCK_IMAGES } from "@/lib/constants";
+//import { MOCK_IMAGES } from "@/lib/constants"; // Removed since not used
 import { motion } from "framer-motion";
 import { z } from "zod";
 
@@ -37,7 +37,7 @@ export default function Upload() {
       userId: 1, // Mock user ID
       title: "",
       description: "",
-      imageUrl: MOCK_IMAGES.artworks[0], // Using first mock image
+      imageUrl: "", // Removed mock image default
       isNsfw: false,
       isAiGenerated: false,
       tags: "",
