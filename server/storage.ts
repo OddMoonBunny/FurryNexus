@@ -31,7 +31,7 @@ export class MemStorage implements IStorage {
     this.galleries = new Map();
     this.currentIds = { user: 1, artwork: 1, gallery: 1 };
 
-    // Add some initial mock data
+    // Add initial user
     this.initializeMockData();
   }
 
@@ -45,33 +45,7 @@ export class MemStorage implements IStorage {
       profileImage: "https://images.unsplash.com/photo-1636690424408-4330adc3e583",
       bannerImage: "https://images.unsplash.com/photo-1636690513351-0af1763f6237"
     };
-    const user = await this.createUser(mockUser);
-
-    // Add mock artworks
-    const mockArtworks = [
-      {
-        userId: user.id,
-        title: "Neon Dreams",
-        description: "A synthwave-inspired piece",
-        imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
-        isNsfw: false,
-        isAiGenerated: false,
-        tags: ["synthwave", "digital", "neon"]
-      },
-      {
-        userId: user.id,
-        title: "Cyber Sunset",
-        description: "Digital landscape",
-        imageUrl: "https://images.unsplash.com/photo-1483478550801-ceba5fe50e8e",
-        isNsfw: false,
-        isAiGenerated: true,
-        tags: ["landscape", "digital", "ai"]
-      }
-    ];
-
-    for (const artwork of mockArtworks) {
-      await this.createArtwork(artwork);
-    }
+    await this.createUser(mockUser);
   }
 
   // User operations
