@@ -19,8 +19,11 @@ export function Navbar() {
           <div className="flex items-center gap-2 cursor-pointer">
             <img 
               src="/Furry_Nexus_Circular_Logo.png" 
-              alt="Furry Nexus"
-              className="h-10 w-10 hover:opacity-80 transition-opacity"
+              alt="Furry Nexus Logo"
+              className="h-10 w-10 hover:opacity-80 transition-opacity rounded-full glow-effect"
+              style={{
+                filter: "drop-shadow(0 0 8px rgba(189,0,255,0.3))"
+              }}
             />
             <span className="text-2xl font-bold bg-gradient-to-r from-[#FF1B8D] to-[#00F9FF] text-transparent bg-clip-text">
               Furry Nexus
