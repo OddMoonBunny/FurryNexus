@@ -41,10 +41,20 @@ export const galleryArtworks = pgTable("gallery_artworks", {
   addedAt: timestamp("added_at").notNull().defaultNow()
 });
 
+// New comments table
+export const comments = pgTable("comments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  artworkId: uuid("artwork_id").notNull().references(() => artworks.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
+});
+
 // Define relationships
 export const usersRelations = relations(users, ({ many }) => ({
   artworks: many(artworks),
-  galleries: many(galleries)
+  galleries: many(galleries),
+  comments: many(comments)
 }));
 
 export const artworksRelations = relations(artworks, ({ one, many }) => ({
@@ -52,7 +62,8 @@ export const artworksRelations = relations(artworks, ({ one, many }) => ({
     fields: [artworks.userId],
     references: [users.id]
   }),
-  galleries: many(galleryArtworks)
+  galleries: many(galleryArtworks),
+  comments: many(comments)
 }));
 
 export const galleriesRelations = relations(galleries, ({ one, many }) => ({
@@ -73,6 +84,18 @@ export const galleryArtworksRelations = relations(galleryArtworks, ({ one }) => 
     references: [artworks.id]
   })
 }));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  user: one(users, {
+    fields: [comments.userId],
+    references: [users.id]
+  }),
+  artwork: one(artworks, {
+    fields: [comments.artworkId],
+    references: [artworks.id]
+  })
+}));
+
 
 // Session table for auth
 export const sessions = pgTable("sessions", {
@@ -97,6 +120,11 @@ export const insertGallerySchema = createInsertSchema(galleries).omit({
   createdAt: true
 });
 
+export const insertCommentSchema = createInsertSchema(comments).omit({
+  id: true,
+  createdAt: true
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -105,3 +133,5 @@ export type InsertArtwork = z.infer<typeof insertArtworkSchema>;
 export type Gallery = typeof galleries.$inferSelect;
 export type InsertGallery = z.infer<typeof insertGallerySchema>;
 export type GalleryArtwork = typeof galleryArtworks.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = z.infer<typeof insertCommentSchema>;
