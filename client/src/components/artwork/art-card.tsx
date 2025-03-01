@@ -31,7 +31,7 @@ export function ArtCard({ artwork }: ArtCardProps) {
             {artwork.title}
           </h3>
         </Link>
-        <Link href={`/user/${artwork.userId}`}>
+        <Link href={`/profile/${artwork.userId}`}>
           <p className="text-sm text-[#FF1B8D] mt-1 hover:underline cursor-pointer">
             {user?.displayName || user?.username}
           </p>
