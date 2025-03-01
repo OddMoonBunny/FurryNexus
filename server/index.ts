@@ -57,8 +57,8 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Try using port 5000 first, fallback to 3000 if unavailable
-  const preferredPorts = [5000, 3000, 8080];
+  // Try using additional ports if default ones are busy
+  const preferredPorts = [5000, 3000, 8080, 4000, 9000];
 
   async function startServer(portIndex = 0) { // Changed to async function
     if (portIndex >= preferredPorts.length) {
@@ -81,10 +81,12 @@ app.use((req, res, next) => {
     } catch (error) {
       if (error.code === 'EADDRINUSE') {
         log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
-        startServer(portIndex + 1);
+        // Make sure we're calling the function with await to properly handle async
+        await startServer(portIndex + 1);
       } else {
         log(`Error starting server: ${error.message}`);
-        throw error;
+        console.error(error);
+        process.exit(1);
       }
     }
   }
