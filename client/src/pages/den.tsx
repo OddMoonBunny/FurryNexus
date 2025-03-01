@@ -47,8 +47,14 @@ const artworkSchema = insertArtworkSchema.extend({
 
 export default function Den() {
   const { id } = useParams<{ id: string }>();
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
+  const [showNsfw, setShowNsfw] = useState(() => {
+    const stored = localStorage.getItem("showNsfw");
+    return stored !== null ? stored === "true" : false;
+  });
+  const [showAiGenerated, setShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem("showAiGenerated");
+    return stored !== null ? stored === "true" : true;
+  });
   const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -612,7 +618,10 @@ export default function Den() {
                   <Switch
                     id="nsfw"
                     checked={showNsfw}
-                    onCheckedChange={setShowNsfw}
+                    onCheckedChange={(checked) => {
+                      setShowNsfw(checked);
+                      localStorage.setItem("showNsfw", checked.toString());
+                    }}
                   />
                   <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
                 </div>
@@ -621,7 +630,10 @@ export default function Den() {
                   <Switch
                     id="ai"
                     checked={showAiGenerated}
-                    onCheckedChange={setShowAiGenerated}
+                    onCheckedChange={(checked) => {
+                      setShowAiGenerated(checked);
+                      localStorage.setItem("showAiGenerated", checked.toString());
+                    }}
                   />
                   <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
                 </div>

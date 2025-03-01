@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import type { Artwork, Gallery } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,10 +15,23 @@ export default function Browser() {
   const [showAiGenerated, setShowAiGenerated] = useState(true);
   const { user } = useAuth();
 
+  // Load preferences from localStorage
+  useEffect(() => {
+    const storedNsfw = localStorage.getItem("showNsfw");
+    const storedAiGenerated = localStorage.getItem("showAiGenerated");
+
+    if (storedNsfw !== null) {
+      setShowNsfw(storedNsfw === "true");
+    }
+    if (storedAiGenerated !== null) {
+      setShowAiGenerated(storedAiGenerated === "true");
+    }
+  }, []);
+
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
     queryFn: async () => {
-      console.log("Fetching artworks");
+      console.log("Fetching artworks with filters:", { showNsfw, showAiGenerated });
       const response = await fetch(`/api/artworks?isNsfw=${showNsfw}&isAiGenerated=${showAiGenerated}`);
       if (!response.ok) {
         throw new Error("Failed to fetch artworks");
