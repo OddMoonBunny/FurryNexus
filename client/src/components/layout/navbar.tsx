@@ -17,7 +17,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
           <div className="text-2xl font-bold bg-gradient-to-r from-[#FF1B8D] to-[#00F9FF] text-transparent bg-clip-text cursor-pointer">
-            SynthFur
+            Furry Nexus
           </div>
         </Link>
 
