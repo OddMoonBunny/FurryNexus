@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { runMigrations } from "./migrations"; // Added import statement
 
 const app = express();
 app.use(express.json());
@@ -58,31 +59,35 @@ app.use((req, res, next) => {
 
   // Try using port 5000 first, fallback to 3000 if unavailable
   const preferredPorts = [5000, 3000, 8080];
-  
-  function startServer(portIndex = 0) {
+
+  async function startServer(portIndex = 0) { // Changed to async function
     if (portIndex >= preferredPorts.length) {
       log("All ports are in use. Unable to start server.");
       process.exit(1);
       return;
     }
-    
+
     const port = preferredPorts[portIndex];
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port}`);
-    }).on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
+    try {
+      // Run database migrations before listening
+      await runMigrations(); 
+      server.listen({
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, () => {
+        log(`serving on port ${port}`);
+      });
+    } catch (error) {
+      if (error.code === 'EADDRINUSE') {
         log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
         startServer(portIndex + 1);
       } else {
-        log(`Error starting server: ${err.message}`);
-        throw err;
+        log(`Error starting server: ${error.message}`);
+        throw error;
       }
-    });
+    }
   }
-  
+
   startServer();
 })();

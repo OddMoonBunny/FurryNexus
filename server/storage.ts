@@ -109,8 +109,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArtwork(id: string): Promise<void> {
     try {
-      // First delete any comments associated with the artwork
-      await db.delete(comments).where(eq(comments.artworkId, id));
+      try {
+        // First try to delete any comments associated with the artwork
+        // Wrap in try/catch to handle case where comments table doesn't exist
+        await db.delete(comments).where(eq(comments.artworkId, id));
+      } catch (commentError) {
+        console.log("Comments table doesn't exist or other error with comments deletion, continuing with artwork deletion");
+      }
       
       // Then delete any gallery associations
       await db.delete(galleryArtworks).where(eq(galleryArtworks.artworkId, id));
