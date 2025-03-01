@@ -30,7 +30,7 @@ export default function GalleryPage() {
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: [`/api/galleries/${id}/artworks`, { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
     queryFn: async () => {
-      const response = await fetch(`/api/galleries/${galleryId}/artworks`);
+      const response = await fetch(`/api/galleries/${id}/artworks`);
       if (!response.ok) {
         throw new Error("Failed to fetch gallery artworks");
       }
