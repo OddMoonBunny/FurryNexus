@@ -14,6 +14,7 @@ export interface IStorage {
   listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]>;
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
   getUserArtworks(userId: number): Promise<Artwork[]>;
+  updateArtwork(id: number, artwork: InsertArtwork): Promise<Artwork>;
 
   // Gallery operations
   getGallery(id: number): Promise<Gallery | undefined>;
@@ -65,6 +66,17 @@ export class DatabaseStorage implements IStorage {
 
   async getUserArtworks(userId: number): Promise<Artwork[]> {
     return await db.select().from(artworks).where(eq(artworks.userId, userId));
+  }
+
+  async updateArtwork(id: number, updateArtwork: InsertArtwork): Promise<Artwork> {
+    const [artwork] = await db
+      .update(artworks)
+      .set(updateArtwork)
+      .where(eq(artworks.id, id))
+      .returning();
+
+    if (!artwork) throw new Error("Artwork not found");
+    return artwork;
   }
 
   // Gallery operations

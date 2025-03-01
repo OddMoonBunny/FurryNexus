@@ -65,6 +65,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/artworks/:id", requireAuth, async (req, res) => {
+    try {
+      const artwork = await storage.getArtwork(Number(req.params.id));
+      if (!artwork) {
+        return res.status(404).json({ message: "Artwork not found" });
+      }
+
+      // Ensure users can only edit their own artworks
+      if (artwork.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to edit this artwork" });
+      }
+
+      const updatedArtwork = insertArtworkSchema.parse({
+        ...req.body,
+        userId: req.user!.id
+      });
+
+      const updated = await storage.updateArtwork(Number(req.params.id), updatedArtwork);
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid artwork data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update artwork" });
+      }
+    }
+  });
+
   // User routes
   app.get("/api/users/:id", async (req, res) => {
     const user = await storage.getUser(Number(req.params.id));
