@@ -44,3 +44,11 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Debug"
+author = 37846682
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node --inspect-brk=0.0.0.0:9229 node_modules/tsx/dist/cli.mjs server/index.ts"
