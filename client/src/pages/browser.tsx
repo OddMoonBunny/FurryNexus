@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
@@ -27,22 +28,31 @@ export default function Browser() {
         <div className="py-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
             <h1 className="text-3xl font-bold text-white">Browse</h1>
-
-            <div className="relative w-full md:w-96">
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <Input
+                className="pl-10 bg-[#22223A] border-[#32325D] text-white"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-[#2D2B55] border-[#BD00FF] text-white"
               />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
           </div>
 
           <Tabs defaultValue="artworks" className="w-full">
-            <TabsList>
-              <TabsTrigger value="artworks">Artworks</TabsTrigger>
-              <TabsTrigger value="galleries">Galleries</TabsTrigger>
+            <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-6 rounded-none">
+              <TabsTrigger
+                value="artworks"
+                className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
+              >
+                Artworks
+              </TabsTrigger>
+              <TabsTrigger
+                value="galleries"
+                className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
+              >
+                Galleries
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="artworks">
@@ -74,18 +84,15 @@ export default function Browser() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                   {galleries.map((gallery) => (
                     <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
-                      <Card className="bg-[#2D2B55] border-[#BD00FF] cursor-pointer hover:border-[#FF1B8D] transition-colors">
+                      <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
                         <CardHeader>
                           <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-300">{gallery.description}</p>
-                          <div className="mt-4">
-                            <div className="text-sm text-gray-400">
-                              View gallery artworks →
-                            </div>
-                          </div>
-                        </CardContent>
+                        {gallery.description && (
+                          <CardContent>
+                            <p className="text-gray-300 line-clamp-2">{gallery.description}</p>
+                          </CardContent>
+                        )}
                       </Card>
                     </Link>
                   ))}
