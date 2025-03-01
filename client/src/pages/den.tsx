@@ -1,18 +1,41 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { ProfileHeader } from "@/components/den/profile-header";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import type { User, Artwork, Gallery } from "@shared/schema";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
 import { useParams } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+import { motion } from "framer-motion";
+
+const artworkSchema = insertArtworkSchema.extend({
+  tags: z.string().transform((str: string) => str.split(",").map((s: string) => s.trim())),
+});
 
 export default function Den() {
   const { id } = useParams<{ id: string }>();
   const [showNsfw, setShowNsfw] = useState(false);
   const [showAiGenerated, setShowAiGenerated] = useState(true);
+  const { toast } = useToast();
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -24,6 +47,73 @@ export default function Den() {
 
   const { data: galleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
+  });
+
+  const artworkForm = useForm<InsertArtwork & { tags: string }>({
+    resolver: zodResolver(artworkSchema),
+    defaultValues: {
+      userId: Number(id),
+      title: "",
+      description: "",
+      imageUrl: "https://images.unsplash.com/photo-1636690424408-4330adc3e583", // Default image for testing
+      isNsfw: false,
+      isAiGenerated: false,
+      tags: "",
+    },
+  });
+
+  const galleryForm = useForm<InsertGallery>({
+    resolver: zodResolver(insertGallerySchema),
+    defaultValues: {
+      userId: Number(id),
+      name: "",
+      description: "",
+      artworkIds: [],
+    },
+  });
+
+  const artworkMutation = useMutation({
+    mutationFn: async (data: InsertArtwork) => {
+      const res = await apiRequest("POST", "/api/artworks", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/artworks`] });
+      toast({
+        title: "Success",
+        description: "Artwork created successfully!",
+      });
+      artworkForm.reset();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
+  const galleryMutation = useMutation({
+    mutationFn: async (data: InsertGallery) => {
+      const res = await apiRequest("POST", "/api/galleries", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/galleries`] });
+      toast({
+        title: "Success",
+        description: "Gallery created successfully!",
+      });
+      galleryForm.reset();
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
   });
 
   if (!user) {
@@ -38,12 +128,131 @@ export default function Den() {
         <Tabs defaultValue="artwork" className="w-full">
           <TabsList className="w-full justify-start mb-6">
             <TabsTrigger value="artwork">Artwork</TabsTrigger>
+            <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="galleries">Galleries</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="artwork">
             <ArtGrid artworks={artworks || []} />
+          </TabsContent>
+
+          <TabsContent value="editor">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-2xl mx-auto"
+            >
+              <Card className="bg-[#2D2B55] border-[#BD00FF]">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-white">Create New Artwork</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...artworkForm}>
+                    <form onSubmit={artworkForm.handleSubmit((data) => artworkMutation.mutate(data))} className="space-y-6">
+                      <FormField
+                        control={artworkForm.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter artwork title"
+                                className="bg-[#1A1A2E] border-[#BD00FF]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={artworkForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your artwork"
+                                className="bg-[#1A1A2E] border-[#BD00FF]"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex gap-6">
+                        <FormField
+                          control={artworkForm.control}
+                          name="isNsfw"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center gap-2">
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <Label>NSFW Content</Label>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={artworkForm.control}
+                          name="isAiGenerated"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center gap-2">
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <Label>AI Generated</Label>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={artworkForm.control}
+                        name="tags"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tags (comma-separated)</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="digital, synthwave, furry"
+                                className="bg-[#1A1A2E] border-[#BD00FF]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="flex justify-end">
+                        <Button
+                          type="submit"
+                          disabled={artworkMutation.isPending}
+                          className="bg-[#FF1B8D] hover:bg-[#ff1b8d]/80"
+                        >
+                          {artworkMutation.isPending ? "Creating..." : "Create Artwork"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="galleries">
@@ -82,11 +291,6 @@ export default function Den() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-          <TabsContent value="favorites">
-            <div className="text-center py-12 text-gray-400">
-              No favorites yet
-            </div>
           </TabsContent>
         </Tabs>
       </div>
