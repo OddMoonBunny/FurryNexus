@@ -4,8 +4,6 @@ import type { User, Artwork, Gallery } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtGrid } from "@/components/artwork/art-grid";
-import { Link } from "wouter";
-import { Loader2 } from "lucide-react";
 
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,8 +25,8 @@ export default function UserPage() {
   if (isLoadingUser) {
     return (
       <div className="min-h-screen bg-[#1A1A2E] pt-24">
-        <div className="container mx-auto px-4 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        <div className="container mx-auto px-4">
+          <div className="text-center">Loading user profile...</div>
         </div>
       </div>
     );
@@ -38,92 +36,56 @@ export default function UserPage() {
     return (
       <div className="min-h-screen bg-[#1A1A2E] pt-24">
         <div className="container mx-auto px-4">
-          <div className="text-center text-2xl text-white">User not found</div>
+          <div className="text-center">User not found</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A2E]">
-      {/* User Banner */}
-      <div
-        className="w-full h-48 bg-cover bg-center relative"
-        style={{ backgroundImage: user.bannerImage ? `url(${user.bannerImage})` : undefined }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1A1A2E]" />
-      </div>
-
-      <div className="container mx-auto px-4 -mt-24 relative z-10">
-        {/* User Profile Card */}
-        <Card className="bg-[#2D2B55] border-[#BD00FF] overflow-hidden mb-8">
-          <CardHeader className="flex flex-row items-center gap-6 pt-8">
-            <img
-              src={user.profileImage || "https://images.unsplash.com/photo-1636690424408-4330adc3e583"}
-              alt={user.displayName || user.username}
-              className="w-32 h-32 rounded-full border-4 border-[#FF1B8D] object-cover"
-            />
-            <div>
-              <CardTitle className="text-4xl font-bold text-white mb-2">
-                {user.displayName || user.username}
-              </CardTitle>
-              <p className="text-lg text-[#FF1B8D]">@{user.username}</p>
-              {user.bio && (
-                <p className="text-gray-200 mt-4 text-lg">{user.bio}</p>
-              )}
-            </div>
+    <div className="min-h-screen bg-[#1A1A2E] pt-24">
+      <div className="container mx-auto px-4">
+        <Card className="bg-[#2D2B55] border-[#BD00FF] mb-8">
+          <CardHeader>
+            <CardTitle className="text-3xl text-white">
+              {user.displayName || user.username}
+            </CardTitle>
           </CardHeader>
+          {user.bio && (
+            <CardContent>
+              <p className="text-gray-200">{user.bio}</p>
+            </CardContent>
+          )}
         </Card>
 
-        {/* Content Tabs */}
-        <Tabs defaultValue="artworks" className="w-full">
-          <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-8 rounded-none">
-            <TabsTrigger
-              value="artworks"
-              className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
-            >
-              Artworks
-            </TabsTrigger>
-            <TabsTrigger
-              value="galleries"
-              className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
-            >
-              Galleries
-            </TabsTrigger>
+        <Tabs defaultValue="artworks">
+          <TabsList>
+            <TabsTrigger value="artworks">Artworks</TabsTrigger>
+            <TabsTrigger value="galleries">Galleries</TabsTrigger>
           </TabsList>
 
           <TabsContent value="artworks">
             {artworks?.length ? (
               <ArtGrid artworks={artworks} />
             ) : (
-              <div className="text-center py-12 text-gray-400 text-lg">
-                No artworks published yet
+              <div className="text-center py-12 text-gray-400">
+                No artworks yet
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="galleries">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleries?.length ? (
-                galleries.map((gallery) => (
-                  <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
-                    <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
-                      <CardHeader>
-                        <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
-                      </CardHeader>
-                      {gallery.description && (
-                        <CardContent>
-                          <p className="text-gray-300 line-clamp-2">{gallery.description}</p>
-                        </CardContent>
-                      )}
-                    </Card>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-3 text-center py-12 text-gray-400 text-lg">
-                  No galleries created yet
-                </div>
-              )}
+              {galleries?.map((gallery) => (
+                <Card key={gallery.id} className="bg-[#2D2B55] border-[#BD00FF]">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300">{gallery.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </TabsContent>
         </Tabs>

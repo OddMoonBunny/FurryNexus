@@ -10,24 +10,17 @@ import Den from "@/pages/den";
 import Auth from "@/pages/auth";
 import ArtworkPage from "@/pages/artwork";
 import UserPage from "@/pages/user";
-import ProfilePage from "@/pages/profile";
 import GalleryPage from "@/pages/gallery";
 import NotFound from "@/pages/not-found";
 import { ProtectedRoute } from "./lib/protected-route";
-import BrowsePage from "@/pages/browse";
-import ArtistsPage from "@/pages/artists";
-
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={() => <Redirect to="/browse" />} /> {/* Changed redirect to /browse */}
+      <Route path="/" component={() => <Redirect to="/browser" />} />
       <Route path="/auth" component={Auth} />
-      <Route path="/browse" component={BrowsePage} />
-      <Route path="/artists" component={ArtistsPage} />
       <Route path="/browser" component={Browser} />
       <Route path="/artwork/:id" component={ArtworkPage} />
-      <Route path="/profile/:id" component={ProfilePage} />
       <Route path="/user/:id" component={UserPage} />
       <Route path="/gallery/:id" component={GalleryPage} />
       <ProtectedRoute path="/den/:id" component={Den} />

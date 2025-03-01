@@ -6,7 +6,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { User, Search, LogIn, LogOut, Users } from "lucide-react"; // Users icon added here
+import { User, Search, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navbar() {
@@ -40,16 +40,6 @@ export function Navbar() {
                     <div className="flex items-center gap-2 cursor-pointer">
                       <Search className="h-4 w-4" />
                       <span>Gallery</span>
-                    </div>
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link href="/browse">
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <Search className="h-4 w-4" />
-                      <span>Browse</span>
                     </div>
                   </Link>
                 </NavigationMenuLink>
