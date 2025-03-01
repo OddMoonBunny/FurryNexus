@@ -175,12 +175,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add this route handler near the other gallery routes
   app.get("/api/galleries/:id", async (req, res) => {
     try {
+      console.log(`Getting gallery with ID: ${req.params.id}`);
       const gallery = await storage.getGallery(req.params.id);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
+      console.log("Gallery found:", gallery);
       res.json(gallery);
     } catch (error) {
+      console.error("Error fetching gallery:", error);
       res.status(500).json({ message: "Failed to fetch gallery" });
     }
   });
@@ -232,9 +235,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/galleries/:id/artworks", async (req, res) => {
     try {
+      console.log(`Getting artworks for gallery with ID: ${req.params.id}`);
       const artworks = await storage.listGalleryArtworks(req.params.id);
+      console.log(`Found ${artworks.length} artworks for gallery`);
       res.json(artworks);
     } catch (error) {
+      console.error("Error fetching gallery artworks:", error);
       res.status(500).json({ message: "Failed to fetch gallery artworks" });
     }
   });

@@ -2,8 +2,14 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    try {
+      const text = await res.text();
+      console.error(`API request failed: ${res.status} - ${text || res.statusText}`);
+      throw new Error(`${res.status}: ${text || res.statusText}`);
+    } catch (e) {
+      console.error(`API request failed: ${res.status} - ${res.statusText}`);
+      throw new Error(`${res.status}: ${res.statusText}`);
+    }
   }
 }
 
@@ -29,16 +35,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
+    console.log(`Executing query: ${queryKey[0]}`);
+    try {
+      const res = await fetch(queryKey[0] as string, {
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        console.log(`Unauthorized access to ${queryKey[0]}, returning null`);
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      const data = await res.json();
+      console.log(`Query data for ${queryKey[0]}: `, data);
+      return data;
+    } catch (error) {
+      console.error(`Query error for ${queryKey[0]}: `, error);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
