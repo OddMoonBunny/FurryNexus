@@ -6,7 +6,6 @@ import { Navbar } from "@/components/layout/navbar";
 import { AuthProvider } from "@/hooks/use-auth";
 import Home from "@/pages/home";
 import Browser from "@/pages/browser";
-import Gallery from "@/pages/gallery";
 import Editor from "@/pages/editor";
 import Den from "@/pages/den";
 import Auth from "@/pages/auth";
@@ -19,7 +18,6 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={Auth} />
       <Route path="/browser" component={Browser} />
-      <ProtectedRoute path="/gallery" component={Gallery} />
       <ProtectedRoute path="/editor" component={Editor} />
       <ProtectedRoute path="/den/:id" component={Den} />
       <Route component={NotFound} />

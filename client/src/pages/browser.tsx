@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import type { Artwork } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Browser() {
   const [showNsfw, setShowNsfw] = useState(false);
   const [showAiGenerated, setShowAiGenerated] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
 
   const { data: artworks, isLoading } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
@@ -22,8 +24,8 @@ export default function Browser() {
       <div className="container mx-auto px-4">
         <div className="py-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-8">
-            <h1 className="text-3xl font-bold text-white">Art Browser</h1>
-            
+            <h1 className="text-3xl font-bold text-white">Art Gallery</h1>
+
             <div className="relative w-full md:w-96">
               <Input
                 placeholder="Search artworks..."
@@ -34,7 +36,7 @@ export default function Browser() {
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-6 mb-8">
             <div className="flex items-center space-x-2">
               <Switch
@@ -44,7 +46,7 @@ export default function Browser() {
               />
               <Label htmlFor="nsfw" className="text-white">Show NSFW</Label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="ai"

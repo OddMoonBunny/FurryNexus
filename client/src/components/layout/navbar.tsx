@@ -6,7 +6,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Palette, Edit2, User, Search, LogIn, LogOut } from "lucide-react";
+import { Edit2, User, Search, LogIn, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navbar() {
@@ -29,23 +29,13 @@ export function Navbar() {
                   <Link href="/browser">
                     <div className="flex items-center gap-2 cursor-pointer">
                       <Search className="h-4 w-4" />
-                      <span>Browse</span>
+                      <span>Gallery</span>
                     </div>
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               {user && (
                 <>
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link href="/gallery">
-                        <div className="flex items-center gap-2 cursor-pointer">
-                          <Palette className="h-4 w-4" />
-                          <span>Gallery</span>
-                        </div>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <Link href="/editor">
