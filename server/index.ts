@@ -37,47 +37,41 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    log("Starting server initialization...");
+    const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      res.status(status).json({ message });
+      throw err;
+    });
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+    const port = 5000;
 
-  // Try using port 5000 first, fallback to 3000 if unavailable
-  const preferredPorts = [5000, 3000, 8080];
-  let currentPortIndex = 0;
-  
-  function startServer(portIndex = 0) {
-    const port = preferredPorts[portIndex];
     server.listen({
       port,
       host: "0.0.0.0",
-      reusePort: true,
     }, () => {
-      log(`serving on port ${port}`);
+      log(`Server started successfully on port ${port}`);
     }).on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE' && currentPortIndex < preferredPorts.length - 1) {
-        currentPortIndex++;
-        log(`Port ${port} is busy, trying port ${preferredPorts[currentPortIndex]}...`);
-        startServer(currentPortIndex);
+      if (err.code === 'EADDRINUSE') {
+        log(`Port ${port} is busy, please free it up and try again`);
+        process.exit(1);
       } else {
+        log(`Server error: ${err.message}`);
         throw err;
       }
     });
+  } catch (error) {
+    log(`Failed to start server: ${error}`);
+    process.exit(1);
   }
-  
-  startServer();
 })();
