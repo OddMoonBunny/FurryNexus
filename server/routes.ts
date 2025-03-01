@@ -259,6 +259,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comments API endpoints
+  app.get("/api/artworks/:id/comments", async (req, res) => {
+    try {
+      const comments = await storage.getArtworkComments(req.params.id);
+      res.json(comments || []);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      res.status(500).json({ message: "Failed to fetch comments" });
+    }
+  });
+
+  app.post("/api/artworks/:id/comments", requireAuth, async (req, res) => {
+    try {
+      const comment = {
+        artworkId: req.params.id,
+        userId: req.user!.id,
+        content: req.body.content,
+      };
+      const created = await storage.createComment(comment);
+      res.status(201).json(created);
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      res.status(500).json({ message: "Failed to create comment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

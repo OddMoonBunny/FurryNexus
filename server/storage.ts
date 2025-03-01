@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Artwork, type InsertArtwork, type Gallery, type InsertGallery, users, artworks, galleries, galleryArtworks } from "@shared/schema";
+import { type User, type InsertUser, type Artwork, type InsertArtwork, type Gallery, type InsertGallery, users, artworks, galleries, galleryArtworks, comments } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -28,6 +28,11 @@ export interface IStorage {
   addArtworkToGallery(galleryId: string, artworkId: string): Promise<void>;
   removeArtworkFromGallery(galleryId: string, artworkId: string): Promise<void>;
   listGalleryArtworks(galleryId: string): Promise<Artwork[]>;
+
+  // Comment operations
+  getArtworkComments(artworkId: string): Promise<{ userId: string; content: string; createdAt: Date }[]>;
+  createComment(comment: { artworkId: string; userId: string; content: string }): Promise<{ id: number; artworkId: string; userId: string; content: string; createdAt: Date }>;
+
 }
 
 export class DatabaseStorage implements IStorage {
@@ -182,6 +187,23 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching gallery artworks:', error);
       throw error;
     }
+  }
+
+  async getArtworkComments(artworkId: string): Promise<{ userId: string; content: string; createdAt: Date }[]> {
+    return await db.query.comments.findMany({
+      where: eq(comments.artworkId, artworkId),
+      orderBy: desc(comments.createdAt),
+    });
+  }
+
+  async createComment(comment: { artworkId: string; userId: string; content: string }): Promise<{ id: number; artworkId: string; userId: string; content: string; createdAt: Date }> {
+    const [created] = await db.insert(comments).values({
+      artworkId: comment.artworkId,
+      userId: comment.userId,
+      content: comment.content,
+      createdAt: new Date(),
+    }).returning();
+    return created;
   }
 }
 
