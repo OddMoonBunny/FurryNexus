@@ -87,7 +87,7 @@ export default function Browser() {
                           </div>
                         </CardContent>
                       </Card>
-                    </Link>k>
+                    </Link>
                   ))}
                 </div>
               )}
