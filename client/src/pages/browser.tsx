@@ -59,6 +59,36 @@ export default function Browser() {
                 <ArtGrid artworks={artworks} />
               )}
             </TabsContent>
+            
+            <TabsContent value="galleries">
+              {isLoadingGalleries ? (
+                <div className="text-center py-12">
+                  <div className="animate-pulse text-[#00F9FF]">Loading galleries...</div>
+                </div>
+              ) : !galleries?.length ? (
+                <div className="text-center py-12">
+                  <h2 className="text-xl font-semibold text-white mb-2">No galleries found</h2>
+                  <p className="text-gray-400">Try adjusting your search terms</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                  {galleries.map((gallery) => (
+                    <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
+                      <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
+                        </CardHeader>
+                        {gallery.description && (
+                          <CardContent>
+                            <p className="text-gray-300 line-clamp-2">{gallery.description}</p>
+                          </CardContent>
+                        )}
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
 
             <TabsContent value="galleries">
               {isLoadingGalleries ? (

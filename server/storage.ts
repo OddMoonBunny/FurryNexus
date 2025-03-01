@@ -22,6 +22,7 @@ export interface IStorage {
   createGallery(gallery: InsertGallery): Promise<Gallery>;
   updateGallery(id: number, gallery: Partial<InsertGallery>): Promise<Gallery>;
   deleteGallery(id: number): Promise<void>;
+  listAllGalleries(): Promise<Gallery[]>; // Added this line
 
   // Gallery-Artwork operations
   addArtworkToGallery(galleryId: number, artworkId: number): Promise<void>;
@@ -117,6 +118,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGallery(id: number): Promise<void> {
     await db.delete(galleries).where(eq(galleries.id, id));
+  }
+
+  async listAllGalleries(): Promise<Gallery[]> { // Added this function
+    return await db.select().from(galleries);
   }
 
   async addArtworkToGallery(galleryId: number, artworkId: number): Promise<void> {

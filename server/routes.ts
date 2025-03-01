@@ -126,6 +126,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Gallery routes
+  app.get("/api/galleries", async (req, res) => {
+    const galleries = await storage.listAllGalleries();
+    res.json(galleries);
+  });
+  
   app.get("/api/users/:userId/galleries", async (req, res) => {
     const galleries = await storage.listUserGalleries(Number(req.params.userId));
     res.json(galleries);
