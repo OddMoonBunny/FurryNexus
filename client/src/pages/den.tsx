@@ -30,7 +30,12 @@ import { Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const artworkSchema = insertArtworkSchema.extend({
-  tags: z.string().transform((str: string) => str.split(",").map((s: string) => s.trim())),
+  tags: z.string().transform((str) => {
+    // If it's already an array, return it
+    if (Array.isArray(str)) return str;
+    // Otherwise split the string
+    return str.split(",").map((s) => s.trim());
+  }),
 });
 
 export default function Den() {
@@ -76,23 +81,29 @@ export default function Den() {
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
-      // If id exists, update the artwork instead of creating a new one
-      const id = data.id;
-      delete data.id; // Remove id from data before sending to API
+      // If editing, ensure we're sending the correct format
+      const { id, ...artwork } = data;
 
-      if (id) {
-        const res = await apiRequest("PATCH", `/api/artworks/${id}`, data);
-        return res.json();
-      } else {
-        const res = await apiRequest("POST", "/api/artworks", data);
-        return res.json();
-      }
+      // Ensure tags is properly formatted
+      const formattedData = {
+        ...artwork,
+        tags: Array.isArray(artwork.tags) ? artwork.tags : artwork.tags.split(",").map(t => t.trim())
+      };
+
+      const res = await apiRequest(
+        id ? "PATCH" : "POST",
+        id ? `/api/artworks/${id}` : "/api/artworks",
+        formattedData
+      );
+      return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/artworks`] });
       toast({
         title: "Success",
-        description: artworkForm.getValues("id") ? "Artwork updated successfully!" : "Artwork created successfully!",
+        description: artworkForm.getValues("id")
+          ? "Artwork updated successfully!"
+          : "Artwork created successfully!",
       });
       artworkForm.reset({
         userId: Number(id),
@@ -136,8 +147,7 @@ export default function Den() {
   });
 
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
-    const tags = data.tags.split(",").map((tag) => tag.trim());
-    artworkMutation.mutate({ ...data, tags });
+    artworkMutation.mutate(data);
   };
 
   if (!user) {
