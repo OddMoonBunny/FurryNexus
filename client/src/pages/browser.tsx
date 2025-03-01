@@ -1,8 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Search } from "lucide-react";
@@ -10,13 +7,11 @@ import type { Artwork } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function Browser() {
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
   const { data: artworks, isLoading } = useQuery<Artwork[]>({
-    queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
+    queryKey: ["/api/artworks"],
   });
 
   return (
@@ -37,26 +32,6 @@ export default function Browser() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 mb-8">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="nsfw"
-                checked={showNsfw}
-                onCheckedChange={setShowNsfw}
-              />
-              <Label htmlFor="nsfw" className="text-white">Show NSFW</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="ai"
-                checked={showAiGenerated}
-                onCheckedChange={setShowAiGenerated}
-              />
-              <Label htmlFor="ai" className="text-white">Show AI Generated</Label>
-            </div>
-          </div>
-
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-pulse text-[#00F9FF]">Loading artworks...</div>
@@ -64,7 +39,7 @@ export default function Browser() {
           ) : !artworks?.length ? (
             <div className="text-center py-12">
               <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
-              <p className="text-gray-400">Try adjusting your filters or search terms</p>
+              <p className="text-gray-400">Try adjusting your search terms</p>
             </div>
           ) : (
             <ArtGrid artworks={artworks} />
