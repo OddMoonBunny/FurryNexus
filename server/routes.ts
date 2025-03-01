@@ -1,10 +1,22 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
 import { z } from "zod";
+import { setupAuth } from "./auth";
+
+// Middleware to ensure user is authenticated
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  next();
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication
+  setupAuth(app);
+
   // Artwork routes
   app.get("/api/artworks", async (req, res) => {
     const filters = {
@@ -21,9 +33,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(artwork);
   });
 
-  app.post("/api/artworks", async (req, res) => {
+  app.post("/api/artworks", requireAuth, async (req, res) => {
     try {
-      const artwork = insertArtworkSchema.parse(req.body);
+      const artwork = insertArtworkSchema.parse({
+        ...req.body,
+        userId: req.user!.id // Get user ID from session
+      });
       const created = await storage.createArtwork(artwork);
       res.status(201).json(created);
     } catch (error) {
@@ -53,9 +68,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(galleries);
   });
 
-  app.post("/api/galleries", async (req, res) => {
+  app.post("/api/galleries", requireAuth, async (req, res) => {
     try {
-      const gallery = insertGallerySchema.parse(req.body);
+      const gallery = insertGallerySchema.parse({
+        ...req.body,
+        userId: req.user!.id // Get user ID from session
+      });
       const created = await storage.createGallery(gallery);
       res.status(201).json(created);
     } catch (error) {
