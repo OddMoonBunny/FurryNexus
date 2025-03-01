@@ -15,12 +15,14 @@ export interface IStorage {
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
   getUserArtworks(userId: number): Promise<Artwork[]>;
   updateArtwork(id: number, artwork: InsertArtwork): Promise<Artwork>;
+  deleteArtwork(id: number): Promise<void>;
 
   // Gallery operations
   getGallery(id: number): Promise<Gallery | undefined>;
   listUserGalleries(userId: number): Promise<Gallery[]>;
   createGallery(gallery: InsertGallery): Promise<Gallery>;
   updateGallery(id: number, gallery: Partial<InsertGallery>): Promise<Gallery>;
+  deleteGallery(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -79,6 +81,10 @@ export class DatabaseStorage implements IStorage {
     return artwork;
   }
 
+  async deleteArtwork(id: number): Promise<void> {
+    await db.delete(artworks).where(eq(artworks.id, id));
+  }
+
   // Gallery operations
   async getGallery(id: number): Promise<Gallery | undefined> {
     const [gallery] = await db.select().from(galleries).where(eq(galleries.id, id));
@@ -103,6 +109,10 @@ export class DatabaseStorage implements IStorage {
 
     if (!gallery) throw new Error("Gallery not found");
     return gallery;
+  }
+
+  async deleteGallery(id: number): Promise<void> {
+    await db.delete(galleries).where(eq(galleries.id, id));
   }
 }
 

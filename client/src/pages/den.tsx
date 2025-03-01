@@ -26,7 +26,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { Upload } from "lucide-react";
+import { Upload, Trash, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const artworkSchema = insertArtworkSchema.extend({
@@ -145,6 +145,58 @@ export default function Den() {
     },
   });
 
+  const deleteArtworkMutation = useMutation({
+    mutationFn: async (artworkId: number) => {
+      await apiRequest("DELETE", `/api/artworks/${artworkId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/artworks`] });
+      toast({
+        title: "Success",
+        description: "Artwork deleted successfully!",
+      });
+      if (selectedArtworkId) {
+        setSelectedArtworkId(null);
+        artworkForm.reset({
+          userId: Number(id),
+          title: "",
+          description: "",
+          imageUrl: "",
+          isNsfw: false,
+          isAiGenerated: false,
+          tags: "",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete artwork",
+      });
+    },
+  });
+
+  const deleteGalleryMutation = useMutation({
+    mutationFn: async (galleryId: number) => {
+      await apiRequest("DELETE", `/api/galleries/${galleryId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}/galleries`] });
+      toast({
+        title: "Success",
+        description: "Gallery deleted successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete gallery",
+      });
+    },
+  });
+
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
     artworkMutation.mutate({ ...data, id: selectedArtworkId });
   };
@@ -195,8 +247,21 @@ export default function Den() {
                           });
                         }}
                       >
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                           <CardTitle className="text-lg text-white">{artwork.title}</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-gray-400 hover:text-[#FF1B8D]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("Are you sure you want to delete this artwork?")) {
+                                deleteArtworkMutation.mutate(artwork.id);
+                              }
+                            }}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
                         </CardHeader>
                         <CardContent>
                           <div className="aspect-video bg-[#1A1A2E] rounded-md overflow-hidden">
@@ -428,13 +493,51 @@ export default function Den() {
           </TabsContent>
 
           <TabsContent value="galleries">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleries?.map((gallery) => (
-                <div key={gallery.id} className="p-4 rounded-lg bg-[#2D2B55] border border-[#BD00FF]">
-                  <h3 className="text-xl font-bold mb-2">{gallery.name}</h3>
-                  <p className="text-gray-300">{gallery.description}</p>
-                </div>
-              ))}
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-white">Your Galleries</h2>
+                <Button
+                  onClick={() => {
+                    const name = prompt("Enter gallery name:");
+                    if (name) {
+                      galleryMutation.mutate({
+                        userId: Number(id),
+                        name,
+                        description: "",
+                        artworkIds: [],
+                      });
+                    }
+                  }}
+                  className="bg-[#00F9FF] hover:bg-[#00F9FF]/80 text-black"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Gallery
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {galleries?.map((gallery) => (
+                  <Card key={gallery.id} className="bg-[#2D2B55] border-[#BD00FF]">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:text-[#FF1B8D]"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this gallery?")) {
+                            deleteGalleryMutation.mutate(gallery.id);
+                          }
+                        }}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-300">{gallery.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </TabsContent>
 

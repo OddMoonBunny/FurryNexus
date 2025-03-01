@@ -93,6 +93,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/artworks/:id", requireAuth, async (req, res) => {
+    try {
+      const artwork = await storage.getArtwork(Number(req.params.id));
+      if (!artwork) {
+        return res.status(404).json({ message: "Artwork not found" });
+      }
+
+      // Ensure users can only delete their own artworks
+      if (artwork.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to delete this artwork" });
+      }
+
+      await storage.deleteArtwork(Number(req.params.id));
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete artwork" });
+    }
+  });
+
+
   // User routes
   app.get("/api/users/:id", async (req, res) => {
     const user = await storage.getUser(Number(req.params.id));
@@ -125,6 +145,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to create gallery" });
       }
+    }
+  });
+
+  app.delete("/api/galleries/:id", requireAuth, async (req, res) => {
+    try {
+      const gallery = await storage.getGallery(Number(req.params.id));
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Ensure users can only delete their own galleries
+      if (gallery.userId !== req.user!.id) {
+        return res.status(403).json({ message: "Not authorized to delete this gallery" });
+      }
+
+      await storage.deleteGallery(Number(req.params.id));
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete gallery" });
     }
   });
 
