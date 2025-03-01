@@ -1,10 +1,12 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import type { Artwork, User } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button"; // Assuming this import is needed
+import { X } from "lucide-react"; // Or whichever icon library is used
+
 
 export default function ArtworkPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +19,11 @@ export default function ArtworkPage() {
     queryKey: [`/api/users/${artwork?.userId}`],
     enabled: !!artwork,
   });
+
+  const goBack = () => {
+    window.history.back();
+  };
+
 
   if (isLoadingArtwork) {
     return (
@@ -41,7 +48,17 @@ export default function ArtworkPage() {
   return (
     <div className="min-h-screen bg-[#1A1A2E] pt-24">
       <div className="container mx-auto px-4">
-        <Card className="bg-[#2D2B55] border-[#BD00FF]">
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={goBack}
+            className="rounded-full border-[#FF1B8D] bg-[#2D2B55] hover:bg-[#FF1B8D]/20"
+          >
+            <X className="h-6 w-6 text-[#FF1B8D]" />
+          </Button>
+        </div>
+        <Card className="bg-[#2D2B55] border-[#BD00FF] overflow-hidden">
           <CardHeader>
             <CardTitle className="text-3xl text-white">{artwork.title}</CardTitle>
             <div className="flex items-center gap-2 mt-2">
@@ -64,7 +81,7 @@ export default function ArtworkPage() {
                 className="w-full h-full object-contain"
               />
             </div>
-            
+
             <div className="flex gap-2">
               {artwork.isNsfw && (
                 <Badge variant="outline" className="border-[#FF1B8D] text-[#FF1B8D]">
