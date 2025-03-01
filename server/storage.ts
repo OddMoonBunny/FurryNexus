@@ -59,14 +59,16 @@ export class DatabaseStorage implements IStorage {
     // Create an array of conditions
     const conditions = [];
     
-    // Apply NSFW filter
-    if (filters?.isNsfw !== undefined) {
-      // If isNsfw is true, show NSFW content
-      // If isNsfw is false, only show non-NSFW content
-      conditions.push(eq(artworks.isNsfw, filters.isNsfw));
+    // NSFW filtering logic
+    if (filters?.isNsfw === false) {
+      // When NSFW filter is false, only show non-NSFW content regardless of other filters
+      conditions.push(eq(artworks.isNsfw, false));
+    } else if (filters?.isNsfw === true) {
+      // When NSFW filter is true, show NSFW content
+      // No condition needed as we want both NSFW and non-NSFW content
     }
     
-    // Apply AI Generated filter
+    // Apply AI Generated filter independently
     if (filters?.isAiGenerated !== undefined) {
       conditions.push(eq(artworks.isAiGenerated, filters.isAiGenerated));
     }
