@@ -1,6 +1,8 @@
 
 import { apiRequest } from './queryClient';
 
+export { apiRequest };
+
 export interface ApiResponse<T> {
   data: T;
   message?: string;
