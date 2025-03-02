@@ -44,7 +44,18 @@ export default function GalleryPage() {
   });
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`],
+    queryKey: [`/api/users/${id}/artworks`, { showNsfw, showAiGenerated }],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        isNsfw: showNsfw.toString(),
+        isAiGenerated: showAiGenerated.toString()
+      });
+      const response = await fetch(`/api/users/${id}/artworks?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch artworks');
+      }
+      return response.json();
+    },
     enabled: !!user,
   });
 
@@ -53,14 +64,11 @@ export default function GalleryPage() {
     enabled: !!user,
   });
 
-  // Filter artworks based on search term, sort option, and content filters
   const filteredAndSortedArtworks = artworks
     ?.filter(artwork => {
-      // Content filter checks
       if (!showNsfw && artwork.isNsfw) return false;
       if (!showAiGenerated && artwork.isAiGenerated) return false;
 
-      // Search term check
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
