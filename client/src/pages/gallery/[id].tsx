@@ -1,6 +1,4 @@
-
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
 import { Artwork, Gallery, User } from "@shared/schema";
@@ -11,7 +9,6 @@ import ArtworkGrid from "@/components/artwork/artwork-grid";
 
 export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
 
   // Fetch gallery data
   const { data: gallery, isLoading: galleryLoading } = useQuery<Gallery>({
@@ -48,12 +45,6 @@ export default function GalleryPage() {
     },
     enabled: !!gallery?.userId,
   });
-
-  useEffect(() => {
-    if (galleryArtworks) {
-      setArtworks(galleryArtworks);
-    }
-  }, [galleryArtworks]);
 
   if (galleryLoading || userLoading || artworksLoading) {
     return (
