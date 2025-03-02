@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Welcome back!",
-        description: `Logged in as ${user.displayName}`,
+        description: `Logged in as ${user.displayName || user.username}`,
       });
     },
     onError: (error: Error) => {
@@ -79,17 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
-      // Clear user data from query cache
       queryClient.setQueryData(["/api/user"], null);
-
-      // Clear den preferences from localStorage
-      localStorage.removeItem("denShowNsfw");
-      localStorage.removeItem("denShowAiGenerated");
-
       toast({
         title: "Logged out",
         description: "Come back soon!",
       });
+
+      // Force refetch content with default preferences
+      queryClient.invalidateQueries({ queryKey: ["/api/artworks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     },
     onError: (error: Error) => {
       toast({
