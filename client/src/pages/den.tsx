@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
 import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
@@ -48,8 +48,17 @@ const artworkSchema = insertArtworkSchema.extend({
 export default function Den() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
+
+  // Initialize state from localStorage if available
+  const [showNsfw, setShowNsfw] = useState(() => {
+    const stored = localStorage.getItem("denShowNsfw");
+    return stored ? stored === "true" : false;
+  });
+
+  const [showAiGenerated, setShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem("denShowAiGenerated");
+    return stored ? stored === "true" : true;
+  });
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -74,18 +83,16 @@ export default function Den() {
     return true;
   }) || [];
 
-  console.log('Toggle States:', { showNsfw, showAiGenerated });
-  console.log('Filtered Artworks:', filteredArtworks);
 
   // Handlers for toggle changes
   const handleNsfwToggle = (checked: boolean) => {
-    console.log('NSFW Toggle Changed:', checked);
     setShowNsfw(checked);
+    localStorage.setItem("denShowNsfw", checked.toString());
   };
 
   const handleAiToggle = (checked: boolean) => {
-    console.log('AI Toggle Changed:', checked);
     setShowAiGenerated(checked);
+    localStorage.setItem("denShowAiGenerated", checked.toString());
   };
 
   const artworkMutation = useMutation({
@@ -256,6 +263,11 @@ export default function Den() {
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
     artworkMutation.mutate({ ...data, id: selectedArtworkId });
   };
+
+  useEffect(() => {
+    // No cleanup needed, localStorage persistence is intended.
+  }, []);
+
 
   if (!user) {
     return <div>Loading...</div>;

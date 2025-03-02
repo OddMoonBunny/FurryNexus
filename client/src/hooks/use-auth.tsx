@@ -79,7 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // Clear user data from query cache
       queryClient.setQueryData(["/api/user"], null);
+
+      // Clear den preferences from localStorage
+      localStorage.removeItem("denShowNsfw");
+      localStorage.removeItem("denShowAiGenerated");
+
       toast({
         title: "Logged out",
         description: "Come back soon!",
