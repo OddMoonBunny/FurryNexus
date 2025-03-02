@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
 import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
@@ -48,21 +48,34 @@ export default function Den() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
-  const [denShowNsfw, setDenShowNsfw] = useState(() => {
-    const stored = localStorage.getItem(`denShowNsfw_${id}`);
+
+  // These settings only affect browsing experience, not den content
+  const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
+    const stored = localStorage.getItem('browseShowNsfw');
     return stored ? stored === "true" : false;
   });
-  const [denShowAiGenerated, setDenShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem(`denShowAiGenerated_${id}`);
+
+  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem('browseShowAiGenerated');
     return stored ? stored === "true" : true;
   });
+
+  useEffect(() => {
+    localStorage.setItem('browseShowNsfw', browseShowNsfw.toString());
+  }, [browseShowNsfw]);
+
+  useEffect(() => {
+    localStorage.setItem('browseShowAiGenerated', browseShowAiGenerated.toString());
+  }, [browseShowAiGenerated]);
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
   });
 
+  // Fetch all artworks without filtering in den
   const { data: artworks } = useQuery<Artwork[]>({
     queryKey: [`/api/users/${id}/artworks`],
+    enabled: !!user,
   });
 
   const artworkForm = useForm<InsertArtwork & { tags: string; id?: number }>({
@@ -663,33 +676,37 @@ export default function Den() {
           <TabsContent value="profile">
             <Card className="bg-[#2D2B55] border-[#BD00FF]">
               <CardHeader>
-                <CardTitle className="text-xl text-white">Den Settings</CardTitle>
+                <CardTitle className="text-xl text-white">Content Filter Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Content Filters */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white">Content Filter Settings</h3>
+                  <h3 className="text-lg font-medium text-white">Public Browsing Preferences</h3>
+                  <p className="text-sm text-gray-400">
+                    These settings only affect what you see when browsing other users' galleries and the art discovery page.
+                    Your own content in your Den will always be visible to you.
+                  </p>
                   <div className="space-y-4 border border-[#32325D] rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <Label htmlFor="den-show-nsfw" className="text-white">Show NSFW Content</Label>
-                        <p className="text-sm text-gray-400">Toggle to show or hide NSFW content in your den</p>
+                        <Label htmlFor="browse-show-nsfw" className="text-white">Show NSFW Content</Label>
+                        <p className="text-sm text-gray-400">Controls visibility of NSFW content while browsing</p>
                       </div>
                       <Switch
-                        id="den-show-nsfw"
-                        checked={denShowNsfw}
-                        onCheckedChange={setDenShowNsfw}
+                        id="browse-show-nsfw"
+                        checked={browseShowNsfw}
+                        onCheckedChange={setBrowseShowNsfw}
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <Label htmlFor="den-show-ai" className="text-white">Show AI Generated Art</Label>
-                        <p className="text-sm text-gray-400">Toggle to show or hide AI-generated artwork in your den</p>
+                        <Label htmlFor="browse-show-ai" className="text-white">Show AI Generated Art</Label>
+                        <p className="text-sm text-gray-400">Controls visibility of AI-generated artwork while browsing</p>
                       </div>
                       <Switch
-                        id="den-show-ai"
-                        checked={denShowAiGenerated}
-                        onCheckedChange={setDenShowAiGenerated}
+                        id="browse-show-ai"
+                        checked={browseShowAiGenerated}
+                        onCheckedChange={setBrowseShowAiGenerated}
                       />
                     </div>
                   </div>

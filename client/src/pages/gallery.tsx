@@ -6,7 +6,7 @@ import { ArtGrid } from "@/components/artwork/art-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +21,17 @@ export default function GalleryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
 
+  // Get visitor's browsing preferences
+  const [browseShowNsfw] = useState(() => {
+    const stored = localStorage.getItem('browseShowNsfw');
+    return stored ? stored === "true" : false;
+  });
+
+  const [browseShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem('browseShowAiGenerated');
+    return stored ? stored === "true" : true;
+  });
+
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
   });
@@ -30,13 +41,19 @@ export default function GalleryPage() {
     enabled: !!user,
   });
 
-  const { data: galleries } = useQuery<Gallery[]>({
-    queryKey: [`/api/users/${id}/galleries`],
-    enabled: !!user,
-  });
-
+  // Apply visitor's content preferences when viewing other users' galleries
   const filteredAndSortedArtworks = artworks
     ?.filter(artwork => {
+      // Don't filter if viewing own gallery
+      if (currentUser?.id === Number(id)) {
+        return true;
+      }
+
+      // Apply visitor's content preferences for other galleries
+      if (!browseShowNsfw && artwork.isNsfw) return false;
+      if (!browseShowAiGenerated && artwork.isAiGenerated) return false;
+
+      // Apply search filter
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -57,6 +74,12 @@ export default function GalleryPage() {
           return 0;
       }
     });
+
+  const { data: galleries } = useQuery<Gallery[]>({
+    queryKey: [`/api/users/${id}/galleries`],
+    enabled: !!user,
+  });
+
 
   if (isLoadingUser || isLoadingArtworks) {
     return (
