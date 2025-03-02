@@ -25,7 +25,12 @@ export function log(message: string, source = "express") {
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    hmr: { 
+      server,
+      port: 24678, // Dedicated HMR port
+      timeout: 10000, // Increase timeout for reconnection attempts
+      overlay: true, // Show overlay for errors
+    },
     allowedHosts: true,
   };
 
@@ -35,8 +40,13 @@ export async function setupVite(app: Express, server: Server) {
     customLogger: {
       ...viteLogger,
       error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
+        // Don't exit on HMR errors, only on critical errors
+        if (msg.includes('hmr') || msg.includes('connection')) {
+          viteLogger.error(msg, options);
+        } else {
+          viteLogger.error(msg, options);
+          process.exit(1);
+        }
       },
     },
     server: serverOptions,

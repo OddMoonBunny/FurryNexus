@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -8,6 +8,11 @@ import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import crypto from "crypto";
+
 
 declare global {
   namespace Express {
@@ -125,4 +130,32 @@ export function setupAuth(app: Express) {
     }
     res.json(req.user);
   });
+}
+
+export async function authenticateUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const sessionToken = req.cookies?.session;
+
+  if (!sessionToken) {
+    console.log(`Authentication failed: No session token provided for ${req.path}`);
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  try {
+    // Implement your session verification logic here
+    // For example, check the session token against a database of valid sessions
+    // If valid, attach the user to the request object
+    // req.user = user;
+
+    // For debugging purposes, log the token
+    console.log(`Authenticating request to ${req.path} with token: ${sessionToken.substring(0, 10)}...`);
+
+    next();
+  } catch (error) {
+    console.error(`Authentication error for ${req.path}:`, error);
+    return res.status(401).json({ message: "Authentication failed" });
+  }
 }

@@ -80,21 +80,20 @@ app.use((req, res, next) => {
         await runMigrations();
 
         // Create a promise for the server listen
-        const startServerPromise = new Promise((resolve, reject) => {
-          const serverInstance = server.listen({
+        const startServerPromise = new Promise<void>((resolve, reject) => {
+          server.listen({
             port,
             host: "0.0.0.0",
-            reusePort: true,
+            reusePort: false, // Changed to false to prevent multiple instances on same port
           }, () => {
             log(`Server running on port ${port}`);
-            resolve(serverInstance);
+            resolve();
           });
 
-          serverInstance.once('error', (error: NodeJS.ErrnoException) => {
+          server.once('error', (error: NodeJS.ErrnoException) => {
             if (error.code === 'EADDRINUSE') {
               log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
-              serverInstance.close();
-              reject(error);
+              startServer(portIndex + 1).then(resolve).catch(reject);
             } else {
               log(`Error starting server: ${error.message}`);
               console.error(error);
@@ -106,13 +105,9 @@ app.use((req, res, next) => {
         await startServerPromise;
       } catch (error) {
         const typedError = error as NodeJS.ErrnoException;
-        if (typedError.code === 'EADDRINUSE') {
-          await startServer(portIndex + 1);
-        } else {
-          log(`Error in server setup: ${typedError.message}`);
-          console.error(typedError);
-          process.exit(1);
-        }
+        log(`Error in server setup: ${typedError.message}`);
+        console.error(typedError);
+        process.exit(1);
       }
     }
 
