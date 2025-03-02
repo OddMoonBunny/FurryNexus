@@ -33,9 +33,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
@@ -243,6 +240,13 @@ export default function Den() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold text-white">Artist's Den</h1>
+          <Button
+            variant="outline"
+            className="ml-auto bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+            onClick={() => window.location.href = `/gallery/${user.id}`}
+          >
+            View Public Gallery
+          </Button>
           {user?.isAdmin && (
             <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF] flex items-center gap-1">
               <Shield className="h-3 w-3" />
@@ -251,12 +255,11 @@ export default function Den() {
           )}
         </div>
 
-        <Tabs defaultValue="artwork" className="w-full">
+        <Tabs defaultValue="editor">
           <TabsList className="w-full justify-start mb-6">
-            <TabsTrigger value="artwork">Artwork</TabsTrigger>
-            <TabsTrigger value="editor">Editor</TabsTrigger>
-            <TabsTrigger value="galleries">Galleries</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="editor">Artwork Editor</TabsTrigger>
+            <TabsTrigger value="galleries">Gallery Manager</TabsTrigger>
+            <TabsTrigger value="profile">Profile Settings</TabsTrigger>
             {user?.isAdmin && (
               <Link href="/admin">
                 <TabsTrigger value="admin" className="text-[#00F9FF] hover:bg-[#00F9FF]/10 cursor-pointer">
@@ -268,12 +271,6 @@ export default function Den() {
               </Link>
             )}
           </TabsList>
-
-          <TabsContent value="artwork">
-            <div className="space-y-8">
-              <ArtGrid artworks={artworks || []} />
-            </div>
-          </TabsContent>
 
           <TabsContent value="editor">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -660,7 +657,7 @@ export default function Den() {
             </div>
           </TabsContent>
 
-          <TabsContent value="settings">
+          <TabsContent value="profile">
             <Card className="bg-[#2D2B55] border-[#BD00FF]">
               <CardHeader>
                 <CardTitle className="text-xl text-white">Account Settings</CardTitle>
