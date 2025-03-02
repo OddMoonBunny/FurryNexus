@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Settings, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
 import type { User } from "@shared/schema";
 
 interface ProfileHeaderProps {
@@ -52,14 +51,6 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                       <Settings className="h-4 w-4 mr-1" />
                       Settings
                     </Button>
-                    {user.isAdmin && (
-                      <Link href="/admin">
-                        <Button variant="outline" size="sm" className="border-[#00F9FF] text-[#00F9FF] hover:bg-[#00F9FF]/10">
-                          <Shield className="h-4 w-4 mr-1" />
-                          Admin Panel
-                        </Button>
-                      </Link>
-                    )}
                   </div>
                 </div>
 
