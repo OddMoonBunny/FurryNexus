@@ -33,6 +33,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch"; //Import added here
+
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
