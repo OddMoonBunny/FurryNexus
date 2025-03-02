@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Settings } from "lucide-react";
+import { Edit, Settings, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 import type { User } from "@shared/schema";
 
 interface ProfileHeaderProps {
@@ -22,14 +24,22 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
             <div className="flex items-start gap-6">
               <img
                 src={user.profileImage || "https://images.unsplash.com/photo-1636690424408-4330adc3e583"}
-                alt={user.displayName}
+                alt={user.displayName || user.username}
                 className="w-24 h-24 rounded-full border-4 border-[#FF1B8D]"
               />
 
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h1 className="text-2xl font-bold text-white">{user.displayName}</h1>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-2xl font-bold text-white">{user.displayName}</h1>
+                      {user.isAdmin && (
+                        <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF] flex items-center gap-1">
+                          <Shield className="h-3 w-3" />
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-300">@{user.username}</p>
                   </div>
 
@@ -42,6 +52,14 @@ export function ProfileHeader({ user }: ProfileHeaderProps) {
                       <Settings className="h-4 w-4 mr-1" />
                       Settings
                     </Button>
+                    {user.isAdmin && (
+                      <Link href="/admin">
+                        <Button variant="outline" size="sm" className="border-[#00F9FF] text-[#00F9FF] hover:bg-[#00F9FF]/10">
+                          <Shield className="h-4 w-4 mr-1" />
+                          Admin Panel
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
 
