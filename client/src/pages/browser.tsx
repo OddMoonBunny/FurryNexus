@@ -117,7 +117,7 @@ export default function Browser() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {galleries.map((gallery) => (
-                    <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
+                    <Link key={gallery.id} to={`/gallery/${gallery.id}`}>
                       <Card className="cursor-pointer bg-[#2D2B55] border-[#BD00FF] hover:shadow-[0_0_15px_rgba(189,0,255,0.3)] transition-shadow">
                         <CardHeader>
                           <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>

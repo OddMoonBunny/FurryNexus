@@ -6,25 +6,25 @@ interface LoadingProps {
   className?: string;
 }
 
-export function Loading({ size = "md", className }: LoadingProps) {
+export default function Loading({ size = "md", className }: LoadingProps) {
   const sizeClasses = {
-    sm: "w-8 h-8",
+    sm: "w-6 h-6",
     md: "w-12 h-12",
-    lg: "w-16 h-16",
+    lg: "w-24 h-24",
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <div className={cn("relative", className)}>
+    <div className={cn("flex items-center justify-center", className)}>
+      <div className="relative">
         <img
           src="/paw-circuit-logo.png"
           alt="Loading..."
           className={cn(
-            "animate-pulse rounded-full",
+            "rounded-full",
             sizeClasses[size]
           )}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-50 rounded-full animate-spin-slow" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-70 rounded-full animate-pulse" />
       </div>
     </div>
   );
