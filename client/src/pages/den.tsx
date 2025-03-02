@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -26,7 +26,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { Upload, Trash, Plus } from "lucide-react";
+import { Upload, Trash, Plus, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -241,14 +241,33 @@ export default function Den() {
   return (
     <div className="min-h-screen bg-[#1A1A2E]">
       <ProfileHeader user={user} />
-
       <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-6">
+          <h1 className="text-2xl font-bold text-white">Artist's Den</h1>
+          {user.isAdmin && (
+            <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF] flex items-center gap-1">
+              <Shield className="h-3 w-3" />
+              Admin
+            </Badge>
+          )}
+        </div>
+
         <Tabs defaultValue="artwork" className="w-full">
           <TabsList className="w-full justify-start mb-6">
             <TabsTrigger value="artwork">Artwork</TabsTrigger>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="galleries">Galleries</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            {user.isAdmin && (
+              <Link href="/admin">
+                <TabsTrigger value="admin" className="text-[#00F9FF] hover:bg-[#00F9FF]/10 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </div>
+                </TabsTrigger>
+              </Link>
+            )}
           </TabsList>
 
           <TabsContent value="artwork">
@@ -412,13 +431,12 @@ export default function Den() {
                                 AI Generated
                               </Badge>
                             )}
-                            {artworkForm.watch("tags") && 
+                            {artworkForm.watch("tags") &&
                               artworkForm.watch("tags").split(",").map((tag: string) => (
                                 <Badge key={tag.trim()} variant="outline">
                                   {tag.trim()}
                                 </Badge>
-                              ))
-                            }
+                              ))}
                           </div>
                         </div>
                       )}
