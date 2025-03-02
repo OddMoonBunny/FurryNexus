@@ -33,7 +33,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch"; //Import added here
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 const artworkSchema = insertArtworkSchema.extend({
@@ -656,7 +657,43 @@ export default function Den() {
                 <CardTitle className="text-xl text-white">Content Preferences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/*Removed the content filter settings from here*/}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="show-nsfw" className="text-white font-medium">Show NSFW Content</Label>
+                    <p className="text-sm text-gray-300">Toggle to show or hide NSFW (Not Safe For Work) content</p>
+                  </div>
+                  <Switch 
+                    id="show-nsfw" 
+                    checked={artworkForm.watch("isNsfw")}
+                    onCheckedChange={(checked) => {
+                      artworkForm.setValue("isNsfw", checked);
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="show-ai" className="text-white font-medium">Show AI-Generated Art</Label>
+                    <p className="text-sm text-gray-300">Toggle to show or hide AI-generated artwork</p>
+                  </div>
+                  <Switch 
+                    id="show-ai" 
+                    checked={artworkForm.watch("isAiGenerated")}
+                    onCheckedChange={(checked) => {
+                      artworkForm.setValue("isAiGenerated", checked);
+                    }}
+                  />
+                </div>
+                <Button 
+                  className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white" 
+                  onClick={() => {
+                    toast({
+                      title: "Preferences saved",
+                      description: "Your content preferences have been updated.",
+                    });
+                  }}
+                >
+                  Save Preferences
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
