@@ -74,8 +74,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   galleries: many(galleries),
   comments: many(comments),
   likes: many(likes),
-  followers: many(follows, { relationName: "followers", fields: [users.id], references: [follows.followedId] }),
-  following: many(follows, { relationName: "following", fields: [users.id], references: [follows.followerId] })
+  followers: many(follows, { relationName: "followers" }),
+  following: many(follows, { relationName: "following" })
 }));
 
 export const artworksRelations = relations(artworks, ({ one, many }) => ({
