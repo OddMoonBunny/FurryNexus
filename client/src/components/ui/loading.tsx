@@ -15,15 +15,16 @@ export function Loading({ size = "md", className }: LoadingProps) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <div className="relative">
-        <img
-          src="/Furry_Nexus_Circular_Logo.png"
-          alt="Loading..."
+        {/* Fallback to a simple colored circle if image fails to load */}
+        <div 
           className={cn(
-            "rounded-full",
+            "rounded-full bg-[#BD00FF]",
             sizeClasses[size]
           )}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-70 rounded-full animate-spin-slow" />
+        <div 
+          className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-70 rounded-full animate-spin-slow" 
+        />
       </div>
     </div>
   );

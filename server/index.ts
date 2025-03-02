@@ -7,6 +7,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -37,51 +38,64 @@ app.use((req, res, next) => {
   next();
 });
 
+// Server startup
 (async () => {
   try {
-    // Run database migrations first
+    log('Starting server initialization...');
+
+    // Run database migrations
+    log('Running database migrations...');
     await runMigrations();
-    log('Database migrations completed');
+    log('Database migrations completed successfully');
 
+    // Register routes
+    log('Registering routes...');
     const server = await registerRoutes(app);
+    log('Routes registered successfully');
 
+    // Error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
+      log(`Error handler caught: ${status} - ${message}`);
       res.status(status).json({ message });
-      throw err;
     });
 
-    // Set up Vite or static serving based on environment
+    // Setup Vite/Static serving
     if (app.get("env") === "development") {
+      log('Setting up Vite middleware...');
       await setupVite(app, server);
       log('Vite middleware setup completed');
     } else {
+      log('Setting up static file serving...');
       serveStatic(app);
-      log('Static serving setup completed');
+      log('Static file serving setup completed');
     }
 
-    // Create a promise for the server listen
-    const startServer = new Promise((resolve, reject) => {
-      const serverInstance = server.listen({
-        port: 5000,
-        host: "0.0.0.0",
-      }, () => {
-        log(`Server started successfully on port 5000`);
-        resolve(serverInstance);
-      });
+    // Start server
+    await new Promise<void>((resolve, reject) => {
+      try {
+        const serverInstance = server.listen({
+          port: 5000,
+          host: "0.0.0.0"
+        }, () => {
+          log('Server started successfully on port 5000');
+          resolve();
+        });
 
-      serverInstance.once('error', (error: Error & { code?: string }) => {
-        if (error.code === 'EADDRINUSE') {
-          log(`Error: Port 5000 is already in use`);
-        } else {
-          log(`Error starting server: ${error.message}`);
-        }
+        serverInstance.on('error', (error: Error & { code?: string }) => {
+          if (error.code === 'EADDRINUSE') {
+            log('Error: Port 5000 is already in use');
+          } else {
+            log(`Server error: ${error.message}`);
+          }
+          reject(error);
+        });
+      } catch (error) {
         reject(error);
-      });
+      }
     });
 
-    await startServer;
   } catch (error) {
     log(`Fatal error during server startup: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
