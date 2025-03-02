@@ -33,29 +33,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Artwork routes
-  app.get("/api/artworks/featured", async (req, res) => {
-    try {
-      const artworks = await storage.listArtworks({ isFeatured: true });
-      res.json(artworks);
-    } catch (error) {
-      console.error("Error fetching featured artworks:", error);
-      res.status(500).json({ message: "Failed to fetch featured artworks" });
-    }
-  });
-
-  // Update existing /api/artworks endpoint to support featured filter
   app.get("/api/artworks", async (req, res) => {
     try {
-      const filters: { isNsfw?: boolean; isAiGenerated?: boolean; isFeatured?: boolean } = {};
+      // Parse query parameters properly
+      const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
 
+      // Parse the NSFW parameter - string "true"/"false" to boolean
       if (req.query.isNsfw !== undefined) {
         filters.isNsfw = req.query.isNsfw === "true";
       }
+
+      // Handle AI Generated filter
       if (req.query.isAiGenerated !== undefined) {
         filters.isAiGenerated = req.query.isAiGenerated === "true";
-      }
-      if (req.query.isFeatured !== undefined) {
-        filters.isFeatured = req.query.isFeatured === "true";
       }
 
       console.log("Server applying filters:", filters);
@@ -121,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/artworks/:id", requireAuth, async (req, res) => {
     try {
       console.log(`Attempting to delete artwork with ID: ${req.params.id}`);
-
+      
       const artwork = await storage.getArtwork(req.params.id);
       if (!artwork) {
         return res.status(404).json({ message: "Artwork not found" });
@@ -153,33 +143,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const artworks = await storage.getUserArtworks(req.params.id); // Removed Number() conversion
     res.json(artworks);
   });
-
+  
   // Admin routes
   app.get("/api/admin/users", requireAuth, async (req, res) => {
     // Check if user is admin
     if (!req.user?.isAdmin) {
       return res.status(403).json({ message: "Not authorized" });
     }
-
+    
     const users = await storage.listAllUsers();
     res.json(users);
   });
-
+  
   app.patch("/api/admin/users/:userId", requireAuth, async (req, res) => {
     // Check if user is admin
     if (!req.user?.isAdmin) {
       return res.status(403).json({ message: "Not authorized" });
     }
-
+    
     try {
       const { isAdmin } = req.body;
       const userId = req.params.userId;
-
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-
+      
       const updatedUser = await storage.updateUserAdminStatus(userId, !!isAdmin);
       res.json(updatedUser);
     } catch (error) {
@@ -196,12 +186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/galleries/:id", async (req, res) => {
     try {
+      console.log(`Getting gallery with ID: ${req.params.id}`);
       const gallery = await storage.getGallery(req.params.id);
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
+      console.log("Gallery found:", gallery);
       res.json(gallery);
     } catch (error) {
+      console.error("Error fetching gallery:", error);
       res.status(500).json({ message: "Failed to fetch gallery" });
     }
   });
@@ -294,9 +287,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/galleries/:id/artworks", async (req, res) => {
     try {
+      console.log(`Getting artworks for gallery with ID: ${req.params.id}`);
       const artworks = await storage.listGalleryArtworks(req.params.id);
+      console.log(`Found ${artworks.length} artworks for gallery`);
       res.json(artworks);
     } catch (error) {
+      console.error("Error fetching gallery artworks:", error);
       res.status(500).json({ message: "Failed to fetch gallery artworks" });
     }
   });
