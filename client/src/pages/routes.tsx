@@ -1,5 +1,5 @@
 
-import { Switch, Route } from "wouter";
+import { Switch as RouterSwitch, Route } from "wouter";
 import Home from "./home";
 import Login from "./login";
 import Register from "./register";
@@ -11,7 +11,7 @@ import NotFound from "./not-found";
 
 export default function AppRoutes() {
   return (
-    <Switch>
+    <RouterSwitch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
@@ -20,7 +20,7 @@ export default function AppRoutes() {
       <Route path="/artwork/:id" component={ArtworkDetails} />
       <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
-    </Switch>
+    </RouterSwitch>
   );
 }
 
