@@ -52,10 +52,9 @@ export default function GalleryPage() {
     enabled: !!user,
   });
 
-  // Filter and sort artworks
+  // Filter by search term and sort
   const filteredAndSortedArtworks = artworks
     ?.filter(artwork => {
-      // Only apply search filter
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
