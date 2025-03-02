@@ -17,35 +17,34 @@ async function runMigrations() {
     if (!galleryArtworksExists.rows[0].exists) {
       console.log('Creating gallery_artworks table...');
       
-      // First, check the data type of galleries.id column
+      // Check the data types of both galleries.id and artworks.id columns
       const galleriesIdType = await db.execute(sql`
         SELECT data_type 
         FROM information_schema.columns 
         WHERE table_name = 'galleries' AND column_name = 'id'
       `);
       
-      const idType = galleriesIdType.rows.length > 0 ? galleriesIdType.rows[0].data_type : 'uuid';
-      console.log(`Galleries id type: ${idType}`);
+      const artworksIdType = await db.execute(sql`
+        SELECT data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'artworks' AND column_name = 'id'
+      `);
       
-      if (idType.toLowerCase() === 'uuid') {
-        await db.execute(sql`
-          CREATE TABLE IF NOT EXISTS gallery_artworks (
-            gallery_id UUID NOT NULL REFERENCES galleries(id),
-            artwork_id UUID NOT NULL REFERENCES artworks(id),
-            added_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            PRIMARY KEY (gallery_id, artwork_id)
-          );
-        `);
-      } else {
-        await db.execute(sql`
-          CREATE TABLE IF NOT EXISTS gallery_artworks (
-            gallery_id INTEGER NOT NULL REFERENCES galleries(id),
-            artwork_id UUID NOT NULL REFERENCES artworks(id),
-            added_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            PRIMARY KEY (gallery_id, artwork_id)
-          );
-        `);
-      }
+      const galleryIdType = galleriesIdType.rows.length > 0 ? galleriesIdType.rows[0].data_type : 'uuid';
+      const artworkIdType = artworksIdType.rows.length > 0 ? artworksIdType.rows[0].data_type : 'uuid';
+      
+      console.log(`Galleries id type: ${galleryIdType}`);
+      console.log(`Artworks id type: ${artworkIdType}`);
+      
+      // Create table with proper data types
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS gallery_artworks (
+          gallery_id ${sql.raw(galleryIdType.toLowerCase() === 'uuid' ? 'UUID' : 'INTEGER')} NOT NULL REFERENCES galleries(id),
+          artwork_id ${sql.raw(artworkIdType.toLowerCase() === 'uuid' ? 'UUID' : 'INTEGER')} NOT NULL REFERENCES artworks(id),
+          added_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          PRIMARY KEY (gallery_id, artwork_id)
+        );
+      `);
       console.log('gallery_artworks table created successfully');
     } else {
       console.log('gallery_artworks table already exists');

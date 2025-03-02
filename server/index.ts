@@ -60,7 +60,7 @@ app.use((req, res, next) => {
   // Try using additional ports if default ones are busy
   const preferredPorts = [5000, 3000, 8080, 4000, 9000];
 
-  async function startServer(portIndex = 0) { // Changed to async function
+  async function startServer(portIndex = 0) {
     if (portIndex >= preferredPorts.length) {
       log("All ports are in use. Unable to start server.");
       process.exit(1);
@@ -69,22 +69,40 @@ app.use((req, res, next) => {
 
     const port = preferredPorts[portIndex];
     try {
-      // Run database migrations before listening
-      await runMigrations(); 
-      server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
-        log(`serving on port ${port}`);
+      // Run database migrations first, outside of the server.listen try-catch
+      await runMigrations();
+      
+      // Create a promise for the server listen
+      const startServerPromise = new Promise((resolve, reject) => {
+        const serverInstance = server.listen({
+          port,
+          host: "0.0.0.0",
+          reusePort: true,
+        }, () => {
+          log(`serving on port ${port}`);
+          resolve(serverInstance);
+        });
+        
+        serverInstance.once('error', (error) => {
+          if (error.code === 'EADDRINUSE') {
+            log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
+            serverInstance.close();
+            reject(error);
+          } else {
+            log(`Error starting server: ${error.message}`);
+            console.error(error);
+            reject(error);
+          }
+        });
       });
+      
+      await startServerPromise;
     } catch (error) {
       if (error.code === 'EADDRINUSE') {
-        log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
-        // Make sure we're calling the function with await to properly handle async
+        // Try the next port
         await startServer(portIndex + 1);
       } else {
-        log(`Error starting server: ${error.message}`);
+        log(`Error in server setup: ${error.message}`);
         console.error(error);
         process.exit(1);
       }
