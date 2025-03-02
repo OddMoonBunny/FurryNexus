@@ -1,0 +1,41 @@
+### **Final Debugging & Fix Prompt: Ensure NSFW and AI-Generated Content Toggles Persist, Save Correctly, and Apply Consistently**  
+
+**"Fix the NSFW and AI-generated content toggles and the 'Save Profile' functionality so that user preferences persist correctly across page refreshes, navigation, and sessions.  
+
+## **Current Issues:**
+1. **Toggles Reset Incorrectly:**
+   - Changing NSFW/AI settings does not always persist when switching pages.
+   - After a refresh, NSFW content disappears, and AI content is enabled instead.
+   - Preferences do not load correctly on the gallery page after toggling settings.
+
+2. **Save Profile Button Does Not Work:**
+   - Clicking 'Save Profile' does not store NSFW/AI preferences in the database.
+   - No API request is made when saving, or the request does not include updated preferences.
+   - Even if saved, the settings are not reflected on the profile after clicking save.
+
+3. **API and Database Issues:**
+   - The `/api/user` endpoint does not return NSFW and AI preferences.
+   - User preferences are not consistently stored or retrieved from the database.
+   - The gallery page does not fetch both `showNsfw` and `showAiGenerated` together, causing settings to apply incorrectly.
+
+## **Required Fixes:**
+✅ **Frontend Fixes:**
+- Ensure toggles **send an API request** to update user preferences when changed.
+- Modify `use-auth.tsx` to **fetch and apply user preferences on page load.**
+- Update the gallery page API requests to **always use the latest stored user preferences.**
+- Ensure the toggles correctly **reflect the saved state after clicking 'Save Profile'.**
+- After saving, **fetch the updated settings** and update UI without requiring a refresh.
+
+✅ **Backend Fixes:**
+- Modify `/api/user` to **return `showNsfw` and `showAiGenerated` settings** alongside user data.
+- Ensure `updateUserPreferences()` **correctly updates** the database.
+- Verify that settings are **retrieved and applied in all API responses.**
+
+✅ **Expected Behavior After Fix:**
+- **Clicking 'Save Profile' correctly updates NSFW and AI-generated settings.**
+- **Settings persist after page refresh, navigation, and logout/login.**
+- **Gallery applies the correct filters based on user preferences.**
+- **The Den remains unaffected, always displaying all user artwork.**
+- **API always returns the correct NSFW/AI preferences when fetching user data.**  
+
+This fix ensures that **settings are properly saved, retrieved, and applied consistently across the entire site.**" 🚀**

@@ -139,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(user);
   });
 
-  // Add user preferences update endpoint
+  // Update existing preferences endpoint to handle both settings together
   app.patch("/api/users/:userId/preferences", requireAuth, async (req, res) => {
     try {
       // Ensure users can only update their own preferences
@@ -149,6 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { showNsfw, showAiGenerated } = req.body;
 
+      // Always update both preferences together
       const updatedUser = await storage.updateUserPreferences(req.params.userId, {
         showNsfw: showNsfw !== undefined ? showNsfw : req.user!.showNsfw,
         showAiGenerated: showAiGenerated !== undefined ? showAiGenerated : req.user!.showAiGenerated
