@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Shield, Search, AlertCircle, Ban, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Loading } from "@/components/ui/loading";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +34,8 @@ export default function AdminPanel() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#1A1A2E] pt-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center text-white">Loading...</div>
-        </div>
+      <div className="min-h-screen bg-[#1A1A2E] pt-24 flex items-center justify-center">
+        <Loading size="lg" />
       </div>
     );
   }
@@ -147,8 +146,8 @@ export default function AdminPanel() {
                   </div>
 
                   {isLoadingUsers ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin text-[#00F9FF]">Loading users...</div>
+                    <div className="py-12 flex justify-center">
+                      <Loading size="lg" />
                     </div>
                   ) : filteredUsers.length === 0 ? (
                     <div className="text-center py-8 flex flex-col items-center gap-2">
@@ -193,7 +192,7 @@ export default function AdminPanel() {
                                       <Switch
                                         id={`ban-${user.id}`}
                                         checked={user.isBanned}
-                                        onCheckedChange={(checked) => 
+                                        onCheckedChange={(checked) =>
                                           toggleBanMutation.mutate({ userId: user.id, isBanned: checked })
                                         }
                                       />
@@ -206,7 +205,7 @@ export default function AdminPanel() {
                                       <Switch
                                         id={`admin-${user.id}`}
                                         checked={user.isAdmin}
-                                        onCheckedChange={(checked) => 
+                                        onCheckedChange={(checked) =>
                                           toggleAdminMutation.mutate({ userId: user.id, isAdmin: checked })
                                         }
                                       />

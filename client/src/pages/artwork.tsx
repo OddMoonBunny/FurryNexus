@@ -12,6 +12,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { format } from "date-fns";
+import { Loading } from "@/components/ui/loading";
 
 interface Comment {
   id: number;
@@ -70,10 +71,8 @@ export default function ArtworkPage() {
 
   if (isLoadingArtwork) {
     return (
-      <div className="min-h-screen bg-[#1A1A2E] pt-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center">Loading artwork...</div>
-        </div>
+      <div className="min-h-screen bg-[#1A1A2E] pt-24 flex items-center justify-center">
+        <Loading size="lg" />
       </div>
     );
   }
