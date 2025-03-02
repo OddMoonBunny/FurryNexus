@@ -148,11 +148,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { showNsfw, showAiGenerated } = req.body;
+      
+      console.log(`Updating preferences for user ${req.params.userId}:`, { 
+        showNsfw, 
+        showAiGenerated,
+        currentUserNsfw: req.user!.showNsfw,
+        currentUserAi: req.user!.showAiGenerated
+      });
 
       // Always update both preferences together
       const updatedUser = await storage.updateUserPreferences(req.params.userId, {
         showNsfw: showNsfw !== undefined ? showNsfw : req.user!.showNsfw,
         showAiGenerated: showAiGenerated !== undefined ? showAiGenerated : req.user!.showAiGenerated
+      });
+
+      console.log("Updated user preferences:", {
+        showNsfw: updatedUser.showNsfw,
+        showAiGenerated: updatedUser.showAiGenerated
       });
 
       res.json(updatedUser);
