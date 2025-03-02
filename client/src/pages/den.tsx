@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
 import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
@@ -37,6 +37,39 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 
+const useContentFilters = () => {
+  const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
+    const stored = localStorage.getItem('browseShowNsfw');
+    return stored ? stored === "true" : false;
+  });
+
+  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem('browseShowAiGenerated');
+    return stored ? stored === "true" : true;
+  });
+
+  const updateNsfwFilter = useCallback((checked: boolean) => {
+    setBrowseShowNsfw(checked);
+    localStorage.setItem('browseShowNsfw', checked.toString());
+    // Invalidate queries that depend on this filter
+    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
+  }, []);
+
+  const updateAiFilter = useCallback((checked: boolean) => {
+    setBrowseShowAiGenerated(checked);
+    localStorage.setItem('browseShowAiGenerated', checked.toString());
+    // Invalidate queries that depend on this filter
+    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
+  }, []);
+
+  return {
+    browseShowNsfw,
+    browseShowAiGenerated,
+    updateNsfwFilter,
+    updateAiFilter
+  };
+};
+
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
     if (Array.isArray(str)) return str;
@@ -49,16 +82,7 @@ export default function Den() {
   const { toast } = useToast();
   const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
 
-  // These settings only affect browsing experience, not den content
-  const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
-    const stored = localStorage.getItem('browseShowNsfw');
-    return stored ? stored === "true" : false;
-  });
-
-  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem('browseShowAiGenerated');
-    return stored ? stored === "true" : true;
-  });
+  const { browseShowNsfw, browseShowAiGenerated, updateNsfwFilter, updateAiFilter } = useContentFilters();
 
 
   const { data: user } = useQuery<User>({
@@ -604,8 +628,8 @@ export default function Den() {
                               {artworkMutation.isPending
                                 ? "Saving..."
                                 : selectedArtworkId
-                                ? "Update Artwork"
-                                : "Create Artwork"}
+                                  ? "Update Artwork"
+                                  : "Create Artwork"}
                             </Button>
                           </div>
                         </form>
@@ -688,10 +712,7 @@ export default function Den() {
                       <Switch
                         id="browse-show-nsfw"
                         checked={browseShowNsfw}
-                        onCheckedChange={(checked) => {
-                          setBrowseShowNsfw(checked);
-                          localStorage.setItem('browseShowNsfw', checked.toString());
-                        }}
+                        onCheckedChange={updateNsfwFilter}
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -702,10 +723,7 @@ export default function Den() {
                       <Switch
                         id="browse-show-ai"
                         checked={browseShowAiGenerated}
-                        onCheckedChange={(checked) => {
-                          setBrowseShowAiGenerated(checked);
-                          localStorage.setItem('browseShowAiGenerated', checked.toString());
-                        }}
+                        onCheckedChange={updateAiFilter}
                       />
                     </div>
                   </div>
@@ -857,8 +875,8 @@ export default function Den() {
                   </Button>
                 </div>
 
-                <Button 
-                  className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white" 
+                <Button
+                  className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white"
                   onClick={() => {
                     toast({
                       title: "Coming Soon",

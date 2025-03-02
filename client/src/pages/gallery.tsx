@@ -6,31 +6,45 @@ import { ArtGrid } from "@/components/artwork/art-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ViewMode = "grid" | "list";
 type SortOption = "recent" | "popular" | "likes";
 
+const useContentFilters = () => {
+  const [filters, setFilters] = useState({
+    showNsfw: localStorage.getItem('browseShowNsfw') === 'true',
+    showAiGenerated: localStorage.getItem('browseShowAiGenerated') !== 'false'
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setFilters({
+        showNsfw: localStorage.getItem('browseShowNsfw') === 'true',
+        showAiGenerated: localStorage.getItem('browseShowAiGenerated') !== 'false'
+      });
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  return filters;
+};
+
 export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
+  const contentFilters = useContentFilters();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
 
-  // Get visitor's browsing preferences
-  const [browseShowNsfw] = useState(() => {
-    const stored = localStorage.getItem('browseShowNsfw');
-    return stored ? stored === "true" : false;
-  });
-
-  const [browseShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem('browseShowAiGenerated');
-    return stored ? stored === "true" : true;
-  });
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -41,19 +55,15 @@ export default function GalleryPage() {
     enabled: !!user,
   });
 
-  // Apply visitor's content preferences when viewing other users' galleries
   const filteredAndSortedArtworks = artworks
     ?.filter(artwork => {
-      // Don't filter if viewing own gallery
       if (currentUser?.id === Number(id)) {
         return true;
       }
 
-      // Apply visitor's content preferences for other galleries
-      if (!browseShowNsfw && artwork.isNsfw) return false;
-      if (!browseShowAiGenerated && artwork.isAiGenerated) return false;
+      if (!contentFilters.showNsfw && artwork.isNsfw) return false;
+      if (!contentFilters.showAiGenerated && artwork.isAiGenerated) return false;
 
-      // Apply search filter
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
