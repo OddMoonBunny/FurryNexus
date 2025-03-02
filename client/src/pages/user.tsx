@@ -1,10 +1,13 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { User, Artwork, Gallery } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtGrid } from "@/components/artwork/art-grid";
+import { Loading } from "@/components/ui/loading";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 export default function UserPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,22 +16,20 @@ export default function UserPage() {
     queryKey: [`/api/users/${id}`],
   });
 
-  const { data: artworks } = useQuery<Artwork[]>({
+  const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: [`/api/users/${id}/artworks`],
     enabled: !!user,
   });
 
-  const { data: galleries } = useQuery<Gallery[]>({
+  const { data: galleries, isLoading: isLoadingGalleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
     enabled: !!user,
   });
 
   if (isLoadingUser) {
     return (
-      <div className="min-h-screen bg-[#1A1A2E] pt-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center">Loading user profile...</div>
-        </div>
+      <div className="min-h-screen bg-[#1A1A2E] pt-24 flex items-center justify-center">
+        <Loading size="lg" />
       </div>
     );
   }
@@ -37,7 +38,7 @@ export default function UserPage() {
     return (
       <div className="min-h-screen bg-[#1A1A2E] pt-24">
         <div className="container mx-auto px-4">
-          <div className="text-center">User not found</div>
+          <div className="text-center text-white">User not found</div>
         </div>
       </div>
     );
@@ -48,8 +49,13 @@ export default function UserPage() {
       <div className="container mx-auto px-4">
         <Card className="bg-[#2D2B55] border-[#BD00FF] mb-8">
           <CardHeader>
-            <CardTitle className="text-3xl text-white">
+            <CardTitle className="text-3xl text-white flex items-center gap-3">
               {user.displayName || user.username}
+              {user.isAdmin && (
+                <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF] text-sm">
+                  Admin
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           {user.bio && (
@@ -59,35 +65,60 @@ export default function UserPage() {
           )}
         </Card>
 
-        <Tabs defaultValue="artworks">
-          <TabsList>
-            <TabsTrigger value="artworks">Artworks</TabsTrigger>
-            <TabsTrigger value="galleries">Galleries</TabsTrigger>
+        <Tabs defaultValue="artworks" className="space-y-6">
+          <TabsList className="bg-[#1A1A2E] border-[#BD00FF]">
+            <TabsTrigger value="artworks" className="data-[state=active]:bg-[#BD00FF]">
+              Artworks
+            </TabsTrigger>
+            <TabsTrigger value="galleries" className="data-[state=active]:bg-[#BD00FF]">
+              Galleries
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="artworks">
-            {artworks?.length ? (
-              <ArtGrid artworks={artworks} />
-            ) : (
+            {isLoadingArtworks ? (
+              <div className="flex justify-center py-12">
+                <Loading size="lg" />
+              </div>
+            ) : !artworks?.length ? (
               <div className="text-center py-12 text-gray-400">
                 No artworks yet
               </div>
+            ) : (
+              <ArtGrid artworks={artworks} />
             )}
           </TabsContent>
 
           <TabsContent value="galleries">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {galleries?.map((gallery) => (
-                <Card key={gallery.id} className="bg-[#2D2B55] border-[#BD00FF]">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300">{gallery.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {isLoadingGalleries ? (
+              <div className="flex justify-center py-12">
+                <Loading size="lg" />
+              </div>
+            ) : !galleries?.length ? (
+              <div className="text-center py-12 text-gray-400">
+                No galleries yet
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {galleries.map((gallery) => (
+                  <Link key={gallery.id} href={`/gallery/${gallery.id}`}>
+                    <Card className="bg-[#2D2B55] border-[#BD00FF] hover:border-[#FF1B8D] transition-colors cursor-pointer">
+                      <CardHeader>
+                        <CardTitle className="text-xl text-white">{gallery.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {gallery.description && (
+                          <p className="text-gray-300 line-clamp-2">{gallery.description}</p>
+                        )}
+                        <div className="text-sm text-gray-400">
+                          Created {format(new Date(gallery.createdAt), 'MMM d, yyyy')}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

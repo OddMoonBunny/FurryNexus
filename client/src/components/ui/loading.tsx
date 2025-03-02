@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 
 interface LoadingProps {
@@ -17,14 +16,14 @@ export function Loading({ size = "md", className }: LoadingProps) {
     <div className={cn("flex items-center justify-center", className)}>
       <div className="relative">
         <img
-          src="/paw-circuit-logo.png"
+          src="/Furry_Nexus_Circular_Logo.png"
           alt="Loading..."
           className={cn(
             "rounded-full",
             sizeClasses[size]
           )}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-70 rounded-full animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-70 rounded-full animate-spin-slow" />
       </div>
     </div>
   );
