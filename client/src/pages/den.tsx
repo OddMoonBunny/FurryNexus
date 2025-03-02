@@ -248,6 +248,7 @@ export default function Den() {
             <TabsTrigger value="artwork">Artwork</TabsTrigger>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="galleries">Galleries</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
             {user?.isAdmin && (
               <Link href="/admin">
                 <TabsTrigger value="admin" className="text-[#00F9FF] hover:bg-[#00F9FF]/10 cursor-pointer">
