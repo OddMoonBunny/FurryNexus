@@ -1,12 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { runMigrations } from "./migrations"; // Added import statement
+import { runMigrations } from "./migrations";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Enhanced logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -22,12 +23,15 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (req.method !== "GET" && req.body) {
+        logLine += ` Request Body: ${JSON.stringify(req.body)}`;
+      }
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        logLine += ` Response: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
+      if (logLine.length > 120) {
+        logLine = logLine.slice(0, 119) + "…";
       }
 
       log(logLine);
@@ -38,76 +42,93 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // Global error handler with proper typing
+    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+      console.error("Error:", err);
+      const status = err instanceof HttpError ? err.status : 500;
+      const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
-  });
+      res.status(status).json({ 
+        message,
+        ...(process.env.NODE_ENV === "development" ? { stack: err.stack } : {})
+      });
+    });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // Try using additional ports if default ones are busy
-  const preferredPorts = [5000, 3000, 8080, 4000, 9000];
-
-  async function startServer(portIndex = 0) {
-    if (portIndex >= preferredPorts.length) {
-      log("All ports are in use. Unable to start server.");
-      process.exit(1);
-      return;
+    // Setup Vite or static serving
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
     }
 
-    const port = preferredPorts[portIndex];
-    try {
-      // Run database migrations first, outside of the server.listen try-catch
-      await runMigrations();
-      
-      // Create a promise for the server listen
-      const startServerPromise = new Promise((resolve, reject) => {
-        const serverInstance = server.listen({
-          port,
-          host: "0.0.0.0",
-          reusePort: true,
-        }, () => {
-          log(`serving on port ${port}`);
-          resolve(serverInstance);
-        });
-        
-        serverInstance.once('error', (error) => {
-          if (error.code === 'EADDRINUSE') {
-            log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
-            serverInstance.close();
-            reject(error);
-          } else {
-            log(`Error starting server: ${error.message}`);
-            console.error(error);
-            reject(error);
-          }
-        });
-      });
-      
-      await startServerPromise;
-    } catch (error) {
-      if (error.code === 'EADDRINUSE') {
-        // Try the next port
-        await startServer(portIndex + 1);
-      } else {
-        log(`Error in server setup: ${error.message}`);
-        console.error(error);
+    // Try using additional ports if default ones are busy
+    const preferredPorts = [5000, 3000, 8080, 4000, 9000];
+
+    async function startServer(portIndex = 0) {
+      if (portIndex >= preferredPorts.length) {
+        log("All ports are in use. Unable to start server.");
         process.exit(1);
+        return;
+      }
+
+      const port = preferredPorts[portIndex];
+      try {
+        // Run database migrations first
+        await runMigrations();
+
+        // Create a promise for the server listen
+        const startServerPromise = new Promise((resolve, reject) => {
+          const serverInstance = server.listen({
+            port,
+            host: "0.0.0.0",
+            reusePort: true,
+          }, () => {
+            log(`Server running on port ${port}`);
+            resolve(serverInstance);
+          });
+
+          serverInstance.once('error', (error: NodeJS.ErrnoException) => {
+            if (error.code === 'EADDRINUSE') {
+              log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
+              serverInstance.close();
+              reject(error);
+            } else {
+              log(`Error starting server: ${error.message}`);
+              console.error(error);
+              reject(error);
+            }
+          });
+        });
+
+        await startServerPromise;
+      } catch (error) {
+        const typedError = error as NodeJS.ErrnoException;
+        if (typedError.code === 'EADDRINUSE') {
+          await startServer(portIndex + 1);
+        } else {
+          log(`Error in server setup: ${typedError.message}`);
+          console.error(typedError);
+          process.exit(1);
+        }
       }
     }
-  }
 
-  startServer();
+    startServer();
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
 })();
+
+// Custom error class for HTTP errors
+class HttpError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
+export { HttpError };
