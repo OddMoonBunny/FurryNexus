@@ -35,21 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Artwork routes
   app.get("/api/artworks", async (req, res) => {
     try {
-      // Parse query parameters properly
-      const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
-
-      // Parse the NSFW parameter - string "true"/"false" to boolean
-      if (req.query.isNsfw !== undefined) {
-        filters.isNsfw = req.query.isNsfw === "true";
-      }
-
-      // Handle AI Generated filter
-      if (req.query.isAiGenerated !== undefined) {
-        filters.isAiGenerated = req.query.isAiGenerated === "true";
-      }
-
-      console.log("Server applying filters:", filters);
-      const artworks = await storage.listArtworks(filters);
+      // Always return all content without filtering
+      console.log("Server applying filters: None (all content shown)");
+      const artworks = await storage.listArtworks({});
       res.json(artworks);
     } catch (error) {
       console.error("Error fetching artworks:", error);
@@ -177,16 +165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update artwork fetching to use user preferences
   app.get("/api/users/:id/artworks", async (req, res) => {
     try {
-      const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
-
-      // If viewing someone else's artworks, apply the viewer's preferences
-      if (req.user && req.user.id !== Number(req.params.id)) {
-        filters.isNsfw = req.user.showNsfw;
-        filters.isAiGenerated = req.user.showAiGenerated;
-      }
-
-      console.log("Applying filters for user artworks:", filters);
-      const artworks = await storage.getUserArtworks(req.params.id, filters);
+      // Always show all content
+      console.log("Applying filters for user artworks: None (all content shown)");
+      const artworks = await storage.getUserArtworks(req.params.id, {});
       res.json(artworks);
     } catch (error) {
       console.error("Error fetching user artworks:", error);

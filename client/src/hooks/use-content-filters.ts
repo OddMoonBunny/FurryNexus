@@ -7,24 +7,9 @@ export function useContentFilters() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Initialize state for content filters
-  const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
-    // Try to get from localStorage first, then fall back to user preferences
-    if (user) {
-      const storedPref = localStorage.getItem(`userNsfwPref_${user.id}`);
-      return storedPref !== null ? storedPref === "true" : (user.showNsfw ?? false);
-    }
-    return false;
-  });
-
-  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
-    // Try to get from localStorage first, then fall back to user preferences
-    if (user) {
-      const storedPref = localStorage.getItem(`userAiPref_${user.id}`);
-      return storedPref !== null ? storedPref === "true" : (user.showAiGenerated ?? true);
-    }
-    return true;
-  });
+  // Always show all content
+  const [browseShowNsfw, setBrowseShowNsfw] = useState(true);
+  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(true);
 
   // Update local state when user preferences change
   useEffect(() => {
