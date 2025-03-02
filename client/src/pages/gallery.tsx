@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink } from "lucide-react";
+import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -105,7 +105,7 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-[#1A1A2E]">
       {/* Banner Section */}
-      <div 
+      <div
         className="h-48 bg-gradient-to-r from-[#1A1A2E] via-[#BD00FF]/30 to-[#1A1A2E] relative"
       >
         {user.bannerImage && (
@@ -265,12 +265,27 @@ export default function GalleryPage() {
               {(filteredAndSortedArtworks || []).map((artwork) => (
                 <Card key={artwork.id} className="bg-[#2D2B55] border-[#BD00FF]">
                   <div className="flex">
-                    <div className="w-48 h-48 overflow-hidden">
+                    <div className="w-48 h-48 overflow-hidden relative">
                       <img
                         src={artwork.imageUrl}
                         alt={artwork.title}
                         className="w-full h-full object-cover"
                       />
+                      {/* Content type badges */}
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        {artwork.isNsfw && (
+                          <Badge variant="destructive" className="bg-red-500">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            NSFW
+                          </Badge>
+                        )}
+                        {artwork.isAiGenerated && (
+                          <Badge className="bg-purple-500">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            AI
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex-1 p-4">
                       <h3 className="text-xl font-medium text-white mb-2">{artwork.title}</h3>
