@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,44 +17,32 @@ export default function Browser() {
   const [showAiGenerated, setShowAiGenerated] = useState(true);
   const { user } = useAuth();
 
-  // Load preferences from localStorage
+  // Force NSFW content to be hidden for non-authenticated users
   useEffect(() => {
-    const storedNsfw = localStorage.getItem("showNsfw");
-    const storedAiGenerated = localStorage.getItem("showAiGenerated");
-
-    if (storedNsfw !== null) {
-      setShowNsfw(storedNsfw === "true");
+    if (!user) {
+      setShowNsfw(false);
     }
-    if (storedAiGenerated !== null) {
-      setShowAiGenerated(storedAiGenerated === "true");
-    }
-  }, []);
+  }, [user]);
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
     queryFn: async () => {
-      console.log("Fetching artworks with filters:", { showNsfw, showAiGenerated });
       const response = await fetch(`/api/artworks?isNsfw=${showNsfw}&isAiGenerated=${showAiGenerated}`);
       if (!response.ok) {
         throw new Error("Failed to fetch artworks");
       }
-      const data = await response.json();
-      console.log("Artworks data:", data);
-      return data;
+      return response.json();
     }
   });
 
   const { data: galleries, isLoading: isLoadingGalleries } = useQuery<Gallery[]>({
     queryKey: ["/api/galleries"],
     queryFn: async () => {
-      console.log("Fetching galleries");
       const response = await fetch("/api/galleries");
       if (!response.ok) {
         throw new Error("Failed to fetch galleries");
       }
-      const data = await response.json();
-      console.log("Galleries data:", data);
-      return data;
+      return response.json();
     }
   });
 
@@ -70,6 +60,28 @@ export default function Browser() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+          </div>
+
+          {/* Content Filters */}
+          <div className="flex items-center gap-6 mb-6">
+            {user && ( // Only show NSFW toggle for authenticated users
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="nsfw-filter"
+                  checked={showNsfw}
+                  onCheckedChange={setShowNsfw}
+                />
+                <Label htmlFor="nsfw-filter">Show NSFW Content</Label>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="ai-filter"
+                checked={showAiGenerated}
+                onCheckedChange={setShowAiGenerated}
+              />
+              <Label htmlFor="ai-filter">Show AI Generated</Label>
             </div>
           </div>
 
@@ -97,7 +109,11 @@ export default function Browser() {
               ) : !artworks?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
-                  <p className="text-gray-400">Try adjusting your search terms or content filters in your den</p>
+                  <p className="text-gray-400">
+                    {!user && showNsfw 
+                      ? "Please log in to view NSFW content"
+                      : "Try adjusting your search terms or content filters"}
+                  </p>
                 </div>
               ) : (
                 <ArtGrid artworks={artworks} />
