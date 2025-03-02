@@ -13,11 +13,22 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 export default function AdminPanel() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isLoading } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if not admin
-  if (!currentUser?.isAdmin) {
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#1A1A2E] pt-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-white">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not logged in or not admin
+  if (!currentUser || !currentUser.isAdmin) {
     return <Redirect to="/" />;
   }
 
