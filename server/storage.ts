@@ -68,12 +68,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserPreferences(userId: string, preferences: { showNsfw?: boolean; showAiGenerated?: boolean }): Promise<User | undefined> {
+    // Only update the fields that are provided
+    const updateData: { showNsfw?: boolean; showAiGenerated?: boolean } = {};
+
+    if (preferences.showNsfw !== undefined) {
+      updateData.showNsfw = preferences.showNsfw;
+    }
+
+    if (preferences.showAiGenerated !== undefined) {
+      updateData.showAiGenerated = preferences.showAiGenerated;
+    }
+
     const [updatedUser] = await db
       .update(users)
-      .set({
-        showNsfw: preferences.showNsfw,
-        showAiGenerated: preferences.showAiGenerated
-      })
+      .set(updateData)
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;
