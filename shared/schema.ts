@@ -13,6 +13,8 @@ export const users = pgTable("users", {
   bannerImage: text("banner_image"),
   isAdmin: boolean("is_admin").notNull().default(false),
   isBanned: boolean("is_banned").notNull().default(false),
+  showNsfw: boolean("show_nsfw").notNull().default(false),
+  showAiGenerated: boolean("show_ai_generated").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 

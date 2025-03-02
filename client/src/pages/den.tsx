@@ -47,19 +47,31 @@ const artworkSchema = insertArtworkSchema.extend({
 
 export default function Den() {
   const { id } = useParams<{ id: string }>();
-  const [showNsfw, setShowNsfw] = useState(() => {
-    const stored = localStorage.getItem("showNsfw");
-    return stored !== null ? stored === "true" : false;
-  });
-  const [showAiGenerated, setShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem("showAiGenerated");
-    return stored !== null ? stored === "true" : true;
-  });
-  const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
+  });
+
+  const updatePreferencesMutation = useMutation({
+    mutationFn: async (data: { showNsfw?: boolean; showAiGenerated?: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/users/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}`] });
+      toast({
+        title: "Success",
+        description: "Preferences updated successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
   });
 
   const { data: artworks } = useQuery<Artwork[]>({
@@ -230,6 +242,7 @@ export default function Den() {
     },
   });
 
+  const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
   const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
     artworkMutation.mutate({ ...data, id: selectedArtworkId });
   };
@@ -668,10 +681,9 @@ export default function Den() {
                 <div className="flex items-center space-x-4">
                   <Switch
                     id="nsfw"
-                    checked={showNsfw}
+                    checked={user?.showNsfw ?? false}
                     onCheckedChange={(checked) => {
-                      setShowNsfw(checked);
-                      localStorage.setItem("showNsfw", checked.toString());
+                      updatePreferencesMutation.mutate({ showNsfw: checked });
                     }}
                   />
                   <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
@@ -680,10 +692,9 @@ export default function Den() {
                 <div className="flex items-center space-x-4">
                   <Switch
                     id="ai"
-                    checked={showAiGenerated}
+                    checked={user?.showAiGenerated ?? true}
                     onCheckedChange={(checked) => {
-                      setShowAiGenerated(checked);
-                      localStorage.setItem("showAiGenerated", checked.toString());
+                      updatePreferencesMutation.mutate({ showAiGenerated: checked });
                     }}
                   />
                   <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
