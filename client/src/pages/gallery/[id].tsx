@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/api";
 import { Artwork, Gallery, User } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Loading from "@/components/ui/loading";
+import { Loading } from "@/components/ui/loading";
 import ArtworkGrid from "@/components/artwork/artwork-grid";
 
 export default function GalleryPage() {
