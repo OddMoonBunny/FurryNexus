@@ -12,15 +12,25 @@ import type { User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Shield, Search, AlertCircle } from "lucide-react";
+import { Shield, Search, AlertCircle, Ban, Trash2 } from "lucide-react";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminPanel() {
   const { user: currentUser, isLoading } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#1A1A2E] pt-24">
@@ -31,7 +41,6 @@ export default function AdminPanel() {
     );
   }
 
-  // Redirect if not logged in or not admin
   if (!currentUser || !currentUser.isAdmin) {
     return <Redirect to="/" />;
   }
@@ -51,6 +60,48 @@ export default function AdminPanel() {
         title: "Success",
         description: "User admin status updated successfully!",
       });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
+  const toggleBanMutation = useMutation({
+    mutationFn: async ({ userId, isBanned }: { userId: number; isBanned: boolean }) => {
+      const res = await apiRequest("PATCH", `/api/admin/users/${userId}`, { isBanned });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User ban status updated successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      await apiRequest("DELETE", `/api/admin/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({
+        title: "Success",
+        description: "User deleted successfully!",
+      });
+      setUserToDelete(null);
     },
     onError: (error) => {
       toast({
@@ -124,6 +175,11 @@ export default function AdminPanel() {
                                         Admin
                                       </Badge>
                                     )}
+                                    {user.isBanned && (
+                                      <Badge variant="outline" className="border-red-500 text-red-500">
+                                        Banned
+                                      </Badge>
+                                    )}
                                   </h3>
                                   <p className="text-sm text-gray-400">
                                     @{user.username} • Joined {format(new Date(user.createdAt), 'MMM d, yyyy')}
@@ -131,19 +187,44 @@ export default function AdminPanel() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    id={`admin-${user.id}`}
-                                    checked={user.isAdmin}
-                                    onCheckedChange={(checked) => 
-                                      toggleAdminMutation.mutate({ userId: user.id, isAdmin: checked })
-                                    }
-                                    disabled={user.id === currentUser.id}
-                                  />
-                                  <Label htmlFor={`admin-${user.id}`} className="text-gray-300">
-                                    Admin Status
-                                  </Label>
-                                </div>
+                                {user.id !== currentUser.id && (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <Switch
+                                        id={`ban-${user.id}`}
+                                        checked={user.isBanned}
+                                        onCheckedChange={(checked) => 
+                                          toggleBanMutation.mutate({ userId: user.id, isBanned: checked })
+                                        }
+                                      />
+                                      <Label htmlFor={`ban-${user.id}`} className="text-gray-300 flex items-center gap-1">
+                                        <Ban className="h-4 w-4" />
+                                        Ban User
+                                      </Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Switch
+                                        id={`admin-${user.id}`}
+                                        checked={user.isAdmin}
+                                        onCheckedChange={(checked) => 
+                                          toggleAdminMutation.mutate({ userId: user.id, isAdmin: checked })
+                                        }
+                                      />
+                                      <Label htmlFor={`admin-${user.id}`} className="text-gray-300 flex items-center gap-1">
+                                        <Shield className="h-4 w-4" />
+                                        Admin
+                                      </Label>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                      onClick={() => setUserToDelete(user)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
                                 {user.id === currentUser.id && (
                                   <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF]">
                                     Current User
@@ -174,6 +255,26 @@ export default function AdminPanel() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+        <AlertDialogContent className="bg-[#2D2B55] border-[#BD00FF]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete User</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              Are you sure you want to delete {userToDelete?.username}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#1A1A2E] text-white hover:bg-[#1A1A2E]/80">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 text-white hover:bg-red-600"
+              onClick={() => userToDelete && deleteUserMutation.mutate(userToDelete.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
