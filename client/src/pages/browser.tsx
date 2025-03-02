@@ -1,23 +1,47 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import type { Artwork, Gallery } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
-  // Content filter settings for browser only
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
+  // Read content filter settings from localStorage (set in den)
+  const [showNsfw, setShowNsfw] = useState(() => {
+    if (!user) return false;
+    const stored = localStorage.getItem(`denShowNsfw_${user.id}`);
+    return stored === "true";
+  });
+
+  const [showAiGenerated, setShowAiGenerated] = useState(() => {
+    if (!user) return true;
+    const stored = localStorage.getItem(`denShowAiGenerated_${user.id}`);
+    return stored === null ? true : stored === "true";
+  });
+
+  // Update filter settings when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (!user) {
+        setShowNsfw(false);
+        return;
+      }
+      const storedNsfw = localStorage.getItem(`denShowNsfw_${user.id}`);
+      const storedAi = localStorage.getItem(`denShowAiGenerated_${user.id}`);
+      setShowNsfw(storedNsfw === "true");
+      setShowAiGenerated(storedAi === null ? true : storedAi === "true");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [user]);
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks"],
@@ -74,28 +98,6 @@ export default function Browser() {
             </div>
           </div>
 
-          {/* Content Filter Controls */}
-          <div className="flex items-center gap-6 mb-6">
-            {user && (
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="nsfw-filter"
-                  checked={showNsfw}
-                  onCheckedChange={setShowNsfw}
-                />
-                <Label htmlFor="nsfw-filter">Show NSFW Content</Label>
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Switch
-                id="ai-filter"
-                checked={showAiGenerated}
-                onCheckedChange={setShowAiGenerated}
-              />
-              <Label htmlFor="ai-filter">Show AI Generated</Label>
-            </div>
-          </div>
-
           <Tabs defaultValue="artworks" className="w-full">
             <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-6 rounded-none">
               <TabsTrigger
@@ -121,9 +123,7 @@ export default function Browser() {
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
                   <p className="text-gray-400">
-                    {!user && !showNsfw 
-                      ? "Please log in to view NSFW content"
-                      : "Try adjusting your search terms or content filters"}
+                    {!user ? "Please log in to view NSFW content" : "Try adjusting your search terms or content filters in your den"}
                   </p>
                 </div>
               ) : (

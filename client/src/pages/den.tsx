@@ -48,6 +48,14 @@ export default function Den() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
+  const [denShowNsfw, setDenShowNsfw] = useState(() => {
+    const stored = localStorage.getItem(`denShowNsfw_${id}`);
+    return stored ? stored === "true" : false;
+  });
+  const [denShowAiGenerated, setDenShowAiGenerated] = useState(() => {
+    const stored = localStorage.getItem(`denShowAiGenerated_${id}`);
+    return stored ? stored === "true" : true;
+  });
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -682,6 +690,43 @@ export default function Den() {
                     />
                   </div>
                 </div>
+
+                <Card className="bg-[#1A1A2E] border-[#BD00FF]">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-white">Content Filter Preferences</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="show-nsfw" className="text-white">Show NSFW Content</Label>
+                        <p className="text-sm text-gray-400">Toggle to show or hide NSFW content in your gallery view</p>
+                      </div>
+                      <Switch
+                        id="show-nsfw"
+                        checked={denShowNsfw}
+                        onCheckedChange={(checked) => {
+                          setDenShowNsfw(checked);
+                          localStorage.setItem(`denShowNsfw_${id}`, checked.toString());
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="show-ai" className="text-white">Show AI Generated Art</Label>
+                        <p className="text-sm text-gray-400">Toggle to show or hide AI-generated artwork in your gallery view</p>
+                      </div>
+                      <Switch
+                        id="show-ai"
+                        checked={denShowAiGenerated}
+                        onCheckedChange={(checked) => {
+                          setDenShowAiGenerated(checked);
+                          localStorage.setItem(`denShowAiGenerated_${id}`, checked.toString());
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Button 
                   className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white" 
                   onClick={() => {
