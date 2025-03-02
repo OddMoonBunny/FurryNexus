@@ -655,45 +655,43 @@ export default function Den() {
           <TabsContent value="settings">
             <Card className="bg-[#2D2B55] border-[#BD00FF]">
               <CardHeader>
-                <CardTitle className="text-xl text-white">Content Preferences</CardTitle>
+                <CardTitle className="text-xl text-white">Account Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="show-nsfw" className="text-white font-medium">Show NSFW Content</Label>
-                    <p className="text-sm text-gray-300">Toggle to show or hide NSFW (Not Safe For Work) content</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Profile Information</Label>
+                    <Input
+                      placeholder="Display Name"
+                      className="bg-[#1A1A2E] border-[#BD00FF]"
+                      value={user?.displayName || ""}
+                      onChange={(e) => {
+                        // TODO: Add display name update mutation
+                      }}
+                    />
                   </div>
-                  <Switch 
-                    id="show-nsfw" 
-                    checked={artworkForm.watch("isNsfw")}
-                    onCheckedChange={(checked) => {
-                      artworkForm.setValue("isNsfw", checked);
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="show-ai" className="text-white font-medium">Show AI-Generated Art</Label>
-                    <p className="text-sm text-gray-300">Toggle to show or hide AI-generated artwork</p>
+                  <div className="space-y-2">
+                    <Label className="text-white">Bio</Label>
+                    <Textarea
+                      placeholder="Tell us about yourself..."
+                      className="bg-[#1A1A2E] border-[#BD00FF]"
+                      value={user?.bio || ""}
+                      onChange={(e) => {
+                        // TODO: Add bio update mutation
+                      }}
+                    />
                   </div>
-                  <Switch 
-                    id="show-ai" 
-                    checked={artworkForm.watch("isAiGenerated")}
-                    onCheckedChange={(checked) => {
-                      artworkForm.setValue("isAiGenerated", checked);
-                    }}
-                  />
                 </div>
                 <Button 
                   className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white" 
                   onClick={() => {
                     toast({
-                      title: "Preferences saved",
-                      description: "Your content preferences have been updated.",
+                      title: "Coming Soon",
+                      description: "Profile updates will be available soon!",
                     });
                   }}
                 >
-                  Save Preferences
+                  Save Profile
                 </Button>
               </CardContent>
             </Card>

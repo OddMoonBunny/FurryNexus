@@ -15,36 +15,32 @@ export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
-  // NSFW content is always hidden for non-authenticated users
-  const showNsfw = Boolean(user);
-  const showAiGenerated = true;
+  // Content filter settings for browser only
+  const [showNsfw, setShowNsfw] = useState(false);
+  const [showAiGenerated, setShowAiGenerated] = useState(true);
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: ["/api/artworks", { showNsfw, showAiGenerated }],
-    queryFn: async () => {
-      const response = await fetch(`/api/artworks?showNsfw=${showNsfw}&showAiGenerated=${showAiGenerated}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch artworks");
-      }
-      return response.json();
-    }
+    queryKey: ["/api/artworks"],
   });
 
   const { data: galleries, isLoading: isLoadingGalleries } = useQuery<Gallery[]>({
     queryKey: ["/api/galleries"],
-    queryFn: async () => {
-      const response = await fetch("/api/galleries");
-      if (!response.ok) {
-        throw new Error("Failed to fetch galleries");
-      }
-      return response.json();
-    }
   });
 
-  // Filter artworks based on search term and authentication status
+  // Filter artworks based on search term and content filters
   const filteredArtworks = artworks?.filter(artwork => {
     // For non-authenticated users, hide NSFW content
     if (!user && artwork.isNsfw) {
+      return false;
+    }
+
+    // Apply NSFW filter for authenticated users
+    if (user && !showNsfw && artwork.isNsfw) {
+      return false;
+    }
+
+    // Apply AI Generated filter
+    if (!showAiGenerated && artwork.isAiGenerated) {
       return false;
     }
 
@@ -78,6 +74,28 @@ export default function Browser() {
             </div>
           </div>
 
+          {/* Content Filter Controls */}
+          <div className="flex items-center gap-6 mb-6">
+            {user && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="nsfw-filter"
+                  checked={showNsfw}
+                  onCheckedChange={setShowNsfw}
+                />
+                <Label htmlFor="nsfw-filter">Show NSFW Content</Label>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="ai-filter"
+                checked={showAiGenerated}
+                onCheckedChange={setShowAiGenerated}
+              />
+              <Label htmlFor="ai-filter">Show AI Generated</Label>
+            </div>
+          </div>
+
           <Tabs defaultValue="artworks" className="w-full">
             <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-6 rounded-none">
               <TabsTrigger
@@ -103,7 +121,9 @@ export default function Browser() {
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
                   <p className="text-gray-400">
-                    {!user ? "Please log in to view NSFW content" : "Try adjusting your search terms"}
+                    {!user && !showNsfw 
+                      ? "Please log in to view NSFW content"
+                      : "Try adjusting your search terms or content filters"}
                   </p>
                 </div>
               ) : (
@@ -119,7 +139,7 @@ export default function Browser() {
               ) : !galleries?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No galleries found</h2>
-                  <p className="text-gray-400">Try adjusting your search terms</p>
+                  <p className="text-gray-400">Create your first gallery to get started</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
