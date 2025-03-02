@@ -48,14 +48,27 @@ const artworkSchema = insertArtworkSchema.extend({
 export default function Den() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const [showNsfw, setShowNsfw] = useState(false);
+  const [showAiGenerated, setShowAiGenerated] = useState(true);
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
   });
 
-  const [showNsfw, setShowNsfw] = useState(false);
-  const [showAiGenerated, setShowAiGenerated] = useState(true);
+  const { data: artworks } = useQuery<Artwork[]>({
+    queryKey: [`/api/users/${id}/artworks`],
+  });
 
+  // Filter artworks based on toggle preferences
+  const filteredArtworks = artworks?.filter(artwork => {
+    if (!showNsfw && artwork.isNsfw) {
+      return false;
+    }
+    if (!showAiGenerated && artwork.isAiGenerated) {
+      return false;
+    }
+    return true;
+  });
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
@@ -194,9 +207,6 @@ export default function Den() {
     },
   });
 
-  const { data: artworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`],
-  });
 
   const { data: galleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
@@ -267,7 +277,7 @@ export default function Den() {
           </TabsList>
 
           <TabsContent value="artwork">
-            <ArtGrid artworks={artworks || []} />
+            <ArtGrid artworks={filteredArtworks || []} />
           </TabsContent>
 
           <TabsContent value="editor">
