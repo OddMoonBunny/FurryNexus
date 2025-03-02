@@ -60,11 +60,22 @@ async function runMigrations() {
     
     if (!commentsExists.rows[0].exists) {
       console.log('Creating comments table...');
+      
+      // Get the data type of artworks.id to ensure compatibility
+      const artworksIdType = await db.execute(sql`
+        SELECT data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'artworks' AND column_name = 'id'
+      `);
+      
+      const artworkIdType = artworksIdType.rows.length > 0 ? artworksIdType.rows[0].data_type : 'uuid';
+      console.log(`Artworks id type: ${artworkIdType}`);
+      
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS comments (
           id SERIAL PRIMARY KEY,
           user_id INTEGER NOT NULL REFERENCES users(id),
-          artwork_id UUID NOT NULL REFERENCES artworks(id),
+          artwork_id ${sql.raw(artworkIdType.toLowerCase() === 'uuid' ? 'UUID' : 'INTEGER')} NOT NULL REFERENCES artworks(id),
           content TEXT NOT NULL,
           created_at TIMESTAMP NOT NULL DEFAULT NOW()
         );
