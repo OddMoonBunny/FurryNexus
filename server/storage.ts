@@ -9,12 +9,13 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   listAllUsers(): Promise<User[]>; // Added
   updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined>; // Added
+  updateUserPreferences(userId: string, preferences: { showNsfw?: boolean; showAiGenerated?: boolean }): Promise<User | undefined>;
 
   // Artwork operations
   getArtwork(id: string): Promise<Artwork | undefined>;
   listArtworks(filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]>;
   createArtwork(artwork: InsertArtwork): Promise<Artwork>;
-  getUserArtworks(userId: string): Promise<Artwork[]>;
+  getUserArtworks(userId: string, filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]>;
   updateArtwork(id: string, artwork: InsertArtwork): Promise<Artwork>;
   deleteArtwork(id: string): Promise<void>;
 
@@ -34,7 +35,6 @@ export interface IStorage {
   // Comment operations
   getArtworkComments(artworkId: string): Promise<{ userId: string; content: string; createdAt: Date }[]>;
   createComment(comment: { artworkId: string; userId: string; content: string }): Promise<{ id: number; artworkId: string; userId: string; content: string; createdAt: Date }>;
-
 }
 
 export class DatabaseStorage implements IStorage {
@@ -62,6 +62,18 @@ export class DatabaseStorage implements IStorage {
     const [updatedUser] = await db
       .update(users)
       .set({ isAdmin })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+
+  async updateUserPreferences(userId: string, preferences: { showNsfw?: boolean; showAiGenerated?: boolean }): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        showNsfw: preferences.showNsfw,
+        showAiGenerated: preferences.showAiGenerated
+      })
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;
@@ -108,8 +120,31 @@ export class DatabaseStorage implements IStorage {
     return artwork;
   }
 
-  async getUserArtworks(userId: string): Promise<Artwork[]> {
-    return await db.select().from(artworks).where(eq(artworks.userId, userId));
+  async getUserArtworks(userId: string, filters?: { isNsfw?: boolean; isAiGenerated?: boolean }): Promise<Artwork[]> {
+    let query = db.select().from(artworks).where(eq(artworks.userId, userId));
+
+    // Create an array of conditions
+    const conditions = [];
+
+    // Handle the combination of NSFW and AI Generated filters
+    if (filters?.isNsfw !== undefined || filters?.isAiGenerated !== undefined) {
+      if (!filters.isNsfw) {
+        // If NSFW is disabled, only show non-NSFW content
+        conditions.push(eq(artworks.isNsfw, false));
+      }
+
+      if (filters.isAiGenerated !== undefined) {
+        // Show AI or non-AI content based on the filter
+        conditions.push(eq(artworks.isAiGenerated, filters.isAiGenerated));
+      }
+    }
+
+    // Apply all conditions with AND logic if there are any
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query;
   }
 
   async updateArtwork(id: string, updateArtwork: InsertArtwork): Promise<Artwork> {
