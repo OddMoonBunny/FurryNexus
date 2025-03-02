@@ -1,12 +1,13 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { runMigrations } from "./migrations"; // Added import statement
+import { runMigrations } from "./migrations";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -37,77 +38,66 @@ app.use((req, res, next) => {
   next();
 });
 
+// Server startup
 (async () => {
-  const server = await registerRoutes(app);
+  try {
+    log('Starting server initialization...');
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // Run database migrations
+    log('Running database migrations...');
+    await runMigrations();
+    log('Database migrations completed successfully');
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    // Register routes
+    log('Registering routes...');
+    const server = await registerRoutes(app);
+    log('Routes registered successfully');
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+    // Error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      log(`Error handler caught: ${status} - ${message}`);
+      res.status(status).json({ message });
+    });
 
-  // Try using additional ports if default ones are busy
-  const preferredPorts = [5000, 3000, 8080, 4000, 9000];
-
-  async function startServer(portIndex = 0) {
-    if (portIndex >= preferredPorts.length) {
-      log("All ports are in use. Unable to start server.");
-      process.exit(1);
-      return;
+    // Setup Vite/Static serving
+    if (app.get("env") === "development") {
+      log('Setting up Vite middleware...');
+      await setupVite(app, server);
+      log('Vite middleware setup completed');
+    } else {
+      log('Setting up static file serving...');
+      serveStatic(app);
+      log('Static file serving setup completed');
     }
 
-    const port = preferredPorts[portIndex];
-    try {
-      // Run database migrations first, outside of the server.listen try-catch
-      await runMigrations();
-      
-      // Create a promise for the server listen
-      const startServerPromise = new Promise((resolve, reject) => {
+    // Start server
+    await new Promise<void>((resolve, reject) => {
+      try {
         const serverInstance = server.listen({
-          port,
-          host: "0.0.0.0",
-          reusePort: true,
+          port: 5000,
+          host: "0.0.0.0"
         }, () => {
-          log(`serving on port ${port}`);
-          resolve(serverInstance);
+          log('Server started successfully on port 5000');
+          resolve();
         });
-        
-        serverInstance.once('error', (error) => {
-          if (error.code === 'EADDRINUSE') {
-            log(`Port ${port} is busy, trying port ${preferredPorts[portIndex + 1]}...`);
-            serverInstance.close();
-            reject(error);
-          } else {
-            log(`Error starting server: ${error.message}`);
-            console.error(error);
-            reject(error);
-          }
-        });
-      });
-      
-      await startServerPromise;
-    } catch (error) {
-      if (error.code === 'EADDRINUSE') {
-        // Try the next port
-        await startServer(portIndex + 1);
-      } else {
-        log(`Error in server setup: ${error.message}`);
-        console.error(error);
-        process.exit(1);
-      }
-    }
-  }
 
-  startServer();
+        serverInstance.on('error', (error: Error & { code?: string }) => {
+          if (error.code === 'EADDRINUSE') {
+            log('Error: Port 5000 is already in use');
+          } else {
+            log(`Server error: ${error.message}`);
+          }
+          reject(error);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+  } catch (error) {
+    log(`Fatal error during server startup: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    process.exit(1);
+  }
 })();

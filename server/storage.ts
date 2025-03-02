@@ -35,6 +35,14 @@ export interface IStorage {
   getArtworkComments(artworkId: string): Promise<{ userId: string; content: string; createdAt: Date }[]>;
   createComment(comment: { artworkId: string; userId: string; content: string }): Promise<{ id: number; artworkId: string; userId: string; content: string; createdAt: Date }>;
 
+  // Collection operations
+  createCollection(collection: { name: string; description?: string; userId: number }): Promise<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean }>;
+  getCollection(id: number): Promise<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean } | undefined>;
+  listUserCollections(userId: number): Promise<Array<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean }>>;
+  addArtworkToCollection(collectionId: number, artworkId: string): Promise<void>;
+  removeArtworkFromCollection(collectionId: number, artworkId: string): Promise<void>;
+  listCollectionArtworks(collectionId: number): Promise<Artwork[]>;
+  toggleArtworkFeatured(artworkId: string, isFeatured: boolean): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -236,6 +244,63 @@ export class DatabaseStorage implements IStorage {
       createdAt: new Date(),
     }).returning();
     return created;
+  }
+
+  // Collection operations
+  async createCollection(collection: { name: string; description?: string; userId: number }): Promise<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean }> {
+    const [created] = await db.insert('collections')
+      .values({
+        name: collection.name,
+        description: collection.description || null,
+        userId: collection.userId,
+        createdAt: new Date(),
+        isFeatured: false
+      })
+      .returning();
+    return created;
+  }
+
+  async getCollection(id: number): Promise<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean } | undefined> {
+    const [collection] = await db.select().from('collections').where(eq('collections.id', id));
+    return collection;
+  }
+
+  async listUserCollections(userId: number): Promise<Array<{ id: number; name: string; description: string | null; userId: number; createdAt: Date; isFeatured: boolean }>> {
+    return await db.select().from('collections').where(eq('collections.userId', userId));
+  }
+
+  async addArtworkToCollection(collectionId: number, artworkId: string): Promise<void> {
+    await db.insert('collection_artworks').values({
+      collectionId,
+      artworkId,
+      addedAt: new Date()
+    });
+  }
+
+  async removeArtworkFromCollection(collectionId: number, artworkId: string): Promise<void> {
+    await db.delete('collection_artworks')
+      .where(and(
+        eq('collection_artworks.collectionId', collectionId),
+        eq('collection_artworks.artworkId', artworkId)
+      ));
+  }
+
+  async listCollectionArtworks(collectionId: number): Promise<Artwork[]> {
+    const result = await db
+      .select({
+        artwork: artworks
+      })
+      .from('collection_artworks')
+      .innerJoin(artworks, eq(artworks.id, 'collection_artworks.artworkId'))
+      .where(eq('collection_artworks.collectionId', collectionId));
+
+    return result.map(r => r.artwork);
+  }
+
+  async toggleArtworkFeatured(artworkId: string, isFeatured: boolean): Promise<void> {
+    await db.update(artworks)
+      .set({ isFeatured })
+      .where(eq(artworks.id, artworkId));
   }
 }
 
