@@ -140,8 +140,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/users/:id/artworks", async (req, res) => {
-    const artworks = await storage.getUserArtworks(req.params.id); // Removed Number() conversion
-    res.json(artworks);
+    try {
+      const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
+
+      // Parse the NSFW parameter
+      if (req.query.isNsfw !== undefined) {
+        filters.isNsfw = req.query.isNsfw === "true";
+      }
+
+      // Parse the AI Generated parameter
+      if (req.query.isAiGenerated !== undefined) {
+        filters.isAiGenerated = req.query.isAiGenerated === "true";
+      }
+
+      console.log("Applying filters for user artworks:", filters);
+      const artworks = await storage.getUserArtworks(req.params.id, filters);
+      res.json(artworks);
+    } catch (error) {
+      console.error("Error fetching user artworks:", error);
+      res.status(500).json({ message: "Failed to fetch artworks" });
+    }
   });
 
   // Admin routes

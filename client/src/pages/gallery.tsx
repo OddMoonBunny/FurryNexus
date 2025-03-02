@@ -11,7 +11,6 @@ import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangl
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useContentFilters } from "@/hooks/use-content-filters";
-import { queryClient } from "@/lib/queryClient";
 
 type ViewMode = "grid" | "list";
 type SortOption = "recent" | "popular" | "likes";
@@ -53,19 +52,30 @@ export default function GalleryPage() {
     enabled: !!user,
   });
 
-
-  const sortedArtworks = artworks?.sort((a, b) => {
-    switch (sortBy) {
-      case "recent":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case "popular":
-        return b.viewCount - a.viewCount;
-      case "likes":
-        return b.likeCount - a.likeCount;
-      default:
-        return 0;
-    }
-  });
+  // Filter and sort artworks
+  const filteredAndSortedArtworks = artworks
+    ?.filter(artwork => {
+      // Only apply search filter
+      if (!searchTerm) return true;
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        artwork.title.toLowerCase().includes(searchLower) ||
+        artwork.description?.toLowerCase().includes(searchLower) ||
+        artwork.tags.some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "recent":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "popular":
+          return b.viewCount - a.viewCount;
+        case "likes":
+          return b.likeCount - a.likeCount;
+        default:
+          return 0;
+      }
+    });
 
   const { data: galleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
@@ -219,10 +229,10 @@ export default function GalleryPage() {
 
           {/* Artwork Display */}
           {viewMode === 'grid' ? (
-            <ArtGrid artworks={sortedArtworks || []} mode="gallery" />
+            <ArtGrid artworks={filteredAndSortedArtworks || []} mode="gallery" />
           ) : (
             <div className="space-y-4">
-              {(sortedArtworks || []).map((artwork) => (
+              {(filteredAndSortedArtworks || []).map((artwork) => (
                 <Card key={artwork.id} className="bg-[#2D2B55] border-[#BD00FF]">
                   <div className="flex">
                     <div className="w-48 h-48 overflow-hidden relative">

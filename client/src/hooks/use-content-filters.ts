@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { queryClient } from "@/lib/queryClient";
 
 export const useContentFilters = () => {
@@ -15,7 +15,7 @@ export const useContentFilters = () => {
   const updateNsfwFilter = useCallback((checked: boolean) => {
     setBrowseShowNsfw(checked);
     localStorage.setItem('browseShowNsfw', checked.toString());
-    // Invalidate queries that depend on this filter
+    // Invalidate all queries that might be affected by filter changes
     queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
     queryClient.invalidateQueries({ queryKey: ['/api/users'] });
   }, []);
@@ -23,7 +23,7 @@ export const useContentFilters = () => {
   const updateAiFilter = useCallback((checked: boolean) => {
     setBrowseShowAiGenerated(checked);
     localStorage.setItem('browseShowAiGenerated', checked.toString());
-    // Invalidate queries that depend on this filter
+    // Invalidate all queries that might be affected by filter changes
     queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
     queryClient.invalidateQueries({ queryKey: ['/api/users'] });
   }, []);
