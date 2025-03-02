@@ -14,13 +14,13 @@ export default function Browser() {
   const { user } = useAuth();
 
   // NSFW content is always hidden for non-authenticated users
-  const showNsfw = user ? false : false;
+  const showNsfw = Boolean(user);
   const showAiGenerated = true;
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: ["/api/artworks", { isNsfw: showNsfw, isAiGenerated: showAiGenerated }],
+    queryKey: ["/api/artworks", { showNsfw, showAiGenerated }],
     queryFn: async () => {
-      const response = await fetch(`/api/artworks?isNsfw=${showNsfw}&isAiGenerated=${showAiGenerated}`);
+      const response = await fetch(`/api/artworks?showNsfw=${showNsfw}&showAiGenerated=${showAiGenerated}`);
       if (!response.ok) {
         throw new Error("Failed to fetch artworks");
       }
@@ -37,6 +37,26 @@ export default function Browser() {
       }
       return response.json();
     }
+  });
+
+  // Filter artworks based on search term and authentication status
+  const filteredArtworks = artworks?.filter(artwork => {
+    // For non-authenticated users, hide NSFW content
+    if (!user && artwork.isNsfw) {
+      return false;
+    }
+
+    // Apply search filter if there's a search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        artwork.title.toLowerCase().includes(searchLower) ||
+        artwork.description?.toLowerCase().includes(searchLower) ||
+        artwork.tags.some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    }
+
+    return true;
   });
 
   return (
@@ -77,7 +97,7 @@ export default function Browser() {
                 <div className="text-center py-12">
                   <div className="animate-pulse text-[#00F9FF]">Loading artworks...</div>
                 </div>
-              ) : !artworks?.length ? (
+              ) : !filteredArtworks?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
                   <p className="text-gray-400">
@@ -85,7 +105,7 @@ export default function Browser() {
                   </p>
                 </div>
               ) : (
-                <ArtGrid artworks={artworks} />
+                <ArtGrid artworks={filteredArtworks} />
               )}
             </TabsContent>
 
