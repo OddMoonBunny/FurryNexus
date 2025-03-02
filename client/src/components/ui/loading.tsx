@@ -16,7 +16,7 @@ export function Loading({ size = "md", className }: LoadingProps) {
     <div className="flex flex-col items-center justify-center gap-4">
       <div className={cn("relative", className)}>
         <img
-          src="/logo.png"
+          src="/Furry_Nexus_Circular_Logo-modified_1740863203668.png"
           alt="Loading..."
           className={cn(
             "animate-spin-slow rounded-full",
