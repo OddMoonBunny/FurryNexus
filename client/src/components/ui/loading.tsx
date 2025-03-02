@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 
 interface LoadingProps {
@@ -19,11 +20,11 @@ export function Loading({ size = "md", className }: LoadingProps) {
           src="/paw-circuit-logo.png"
           alt="Loading..."
           className={cn(
-            "animate-spin-slow rounded-full",
+            "animate-pulse rounded-full",
             sizeClasses[size]
           )}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-50 rounded-full animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#BD00FF] to-transparent opacity-50 rounded-full animate-spin-slow" />
       </div>
     </div>
   );
