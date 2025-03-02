@@ -60,10 +60,12 @@ export default function Den() {
   });
 
   // Filter artworks based on toggle preferences
-  const filteredArtworks = artworks?.filter(artwork => {
+  const filteredArtworks = artworks?.filter((artwork) => {
+    // For non-authenticated users, hide NSFW content
     if (!showNsfw && artwork.isNsfw) {
       return false;
     }
+    // Apply AI Generated filter
     if (!showAiGenerated && artwork.isAiGenerated) {
       return false;
     }
@@ -77,7 +79,7 @@ export default function Den() {
       // Ensure tags is properly formatted
       const formattedData = {
         ...artwork,
-        tags: Array.isArray(artwork.tags) ? artwork.tags : artwork.tags.split(",").map(t => t.trim())
+        tags: Array.isArray(artwork.tags) ? artwork.tags : artwork.tags.split(",").map((t) => t.trim()),
       };
 
       const res = await apiRequest(
@@ -207,7 +209,6 @@ export default function Den() {
     },
   });
 
-
   const { data: galleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
   });
@@ -277,7 +278,27 @@ export default function Den() {
           </TabsList>
 
           <TabsContent value="artwork">
+            <div className="space-y-8">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="nsfw"
+                    checked={showNsfw}
+                    onCheckedChange={setShowNsfw}
+                  />
+                  <Label htmlFor="nsfw">Show NSFW Content</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="ai"
+                    checked={showAiGenerated}
+                    onCheckedChange={setShowAiGenerated}
+                  />
+                  <Label htmlFor="ai">Show AI Generated Content</Label>
+                </div>
+              </div>
             <ArtGrid artworks={filteredArtworks || []} />
+            </div>
           </TabsContent>
 
           <TabsContent value="editor">
