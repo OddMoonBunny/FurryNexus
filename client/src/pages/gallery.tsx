@@ -52,11 +52,9 @@ export default function GalleryPage() {
         case "recent":
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case "popular":
-          // TODO: Add view count sorting
-          return 0;
+          return b.viewCount - a.viewCount;
         case "likes":
-          // TODO: Add likes sorting
-          return 0;
+          return b.likeCount - a.likeCount;
         default:
           return 0;
       }
@@ -88,9 +86,9 @@ export default function GalleryPage() {
       <div 
         className="h-48 bg-gradient-to-r from-[#1A1A2E] via-[#BD00FF]/30 to-[#1A1A2E] relative"
       >
-        {user.bannerUrl && (
+        {user.bannerImage && (
           <img
-            src={user.bannerUrl}
+            src={user.bannerImage}
             alt="Profile Banner"
             className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
@@ -103,7 +101,7 @@ export default function GalleryPage() {
           <CardHeader className="flex flex-row items-start gap-6">
             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-[#1A1A2E] bg-[#1A1A2E]">
               <img
-                src={user.avatarUrl || "https://ui-avatars.com/api/?name=" + user.username}
+                src={user.profileImage || `https://ui-avatars.com/api/?name=${user.username}`}
                 alt={user.username}
                 className="w-full h-full object-cover"
               />
@@ -208,7 +206,7 @@ export default function GalleryPage() {
 
           {/* Artwork Display */}
           {viewMode === 'grid' ? (
-            <ArtGrid artworks={filteredAndSortedArtworks || []} />
+            <ArtGrid artworks={filteredAndSortedArtworks || []} mode="gallery" />
           ) : (
             <div className="space-y-4">
               {(filteredAndSortedArtworks || []).map((artwork) => (
@@ -232,7 +230,7 @@ export default function GalleryPage() {
                       <div className="flex gap-4 text-sm text-gray-400">
                         <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#FF1B8D]">
                           <Heart className="h-4 w-4 mr-1" />
-                          0 Likes
+                          {artwork.likeCount} Likes
                         </Button>
                         <Button variant="ghost" size="sm" className="text-gray-400 hover:text-[#00F9FF]">
                           <MessageSquare className="h-4 w-4 mr-1" />

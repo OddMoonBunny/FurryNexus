@@ -1,15 +1,20 @@
-import { ArtCard } from "./art-card";
+import { ArtworkDetail } from "./artwork-detail";
 import type { Artwork } from "@shared/schema";
 
 interface ArtGridProps {
   artworks: Artwork[];
+  mode?: "gallery" | "den";
 }
 
-export function ArtGrid({ artworks }: ArtGridProps) {
+export function ArtGrid({ artworks, mode = "gallery" }: ArtGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {artworks.map((artwork) => (
-        <ArtCard key={artwork.id} artwork={artwork} />
+        <ArtworkDetail 
+          key={artwork.id} 
+          artwork={artwork} 
+          mode={mode}
+        />
       ))}
     </div>
   );

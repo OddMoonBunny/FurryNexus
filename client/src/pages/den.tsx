@@ -33,6 +33,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
@@ -660,16 +663,91 @@ export default function Den() {
           <TabsContent value="profile">
             <Card className="bg-[#2D2B55] border-[#BD00FF]">
               <CardHeader>
-                <CardTitle className="text-xl text-white">Account Settings</CardTitle>
+                <CardTitle className="text-xl text-white">Profile Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Profile Images */}
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-white">Profile Information</Label>
+                    <Label className="text-white">Profile Banner</Label>
+                    <div className="aspect-[3/1] bg-[#1A1A2E] rounded-lg border-2 border-dashed border-[#BD00FF] overflow-hidden">
+                      {user.bannerImage ? (
+                        <img
+                          src={user.bannerImage}
+                          alt="Profile Banner"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Button
+                            variant="outline"
+                            className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                            onClick={() => document.getElementById("banner-upload")?.click()}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Banner
+                          </Button>
+                          <Input
+                            id="banner-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              // TODO: Implement banner upload
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white">Profile Picture</Label>
+                    <div className="w-32 h-32 bg-[#1A1A2E] rounded-full border-2 border-dashed border-[#BD00FF] overflow-hidden">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt="Profile Picture"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                            onClick={() => document.getElementById("avatar-upload")?.click()}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload
+                          </Button>
+                          <Input
+                            id="avatar-upload"
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              // TODO: Implement avatar upload
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile Information */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-white">Display Name</Label>
                     <Input
                       placeholder="Display Name"
                       className="bg-[#1A1A2E] border-[#BD00FF]"
-                      value={user?.displayName || ""}
+                      value={user.displayName || ""}
                       onChange={(e) => {
                         // TODO: Add display name update mutation
                       }}
@@ -680,7 +758,7 @@ export default function Den() {
                     <Textarea
                       placeholder="Tell us about yourself..."
                       className="bg-[#1A1A2E] border-[#BD00FF]"
-                      value={user?.bio || ""}
+                      value={user.bio || ""}
                       onChange={(e) => {
                         // TODO: Add bio update mutation
                       }}
@@ -688,41 +766,50 @@ export default function Den() {
                   </div>
                 </div>
 
-                <Card className="bg-[#1A1A2E] border-[#BD00FF]">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-white">Content Filter Preferences</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label htmlFor="show-nsfw" className="text-white">Show NSFW Content</Label>
-                        <p className="text-sm text-gray-400">Toggle to show or hide NSFW content in your gallery view</p>
-                      </div>
-                      <Switch
-                        id="show-nsfw"
-                        checked={denShowNsfw}
-                        onCheckedChange={(checked) => {
-                          setDenShowNsfw(checked);
-                          localStorage.setItem(`denShowNsfw_${id}`, checked.toString());
+                {/* Social Links */}
+                <div className="space-y-4">
+                  <Label className="text-white">Social Links</Label>
+                  {(user.socialLinks || []).map((link, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder="Platform (e.g., Twitter, Instagram)"
+                        className="bg-[#1A1A2E] border-[#BD00FF]"
+                        value={link.platform}
+                        onChange={(e) => {
+                          // TODO: Add social links update mutation
                         }}
                       />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label htmlFor="show-ai" className="text-white">Show AI Generated Art</Label>
-                        <p className="text-sm text-gray-400">Toggle to show or hide AI-generated artwork in your gallery view</p>
-                      </div>
-                      <Switch
-                        id="show-ai"
-                        checked={denShowAiGenerated}
-                        onCheckedChange={(checked) => {
-                          setDenShowAiGenerated(checked);
-                          localStorage.setItem(`denShowAiGenerated_${id}`, checked.toString());
+                      <Input
+                        placeholder="URL"
+                        className="bg-[#1A1A2E] border-[#BD00FF]"
+                        value={link.url}
+                        onChange={(e) => {
+                          // TODO: Add social links update mutation
                         }}
                       />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:text-[#FF1B8D]"
+                        onClick={() => {
+                          // TODO: Remove social link
+                        }}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="w-full bg-[#1A1A2E] border-[#BD00FF] hover:bg-[#BD00FF]/10"
+                    onClick={() => {
+                      // TODO: Add new social link
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Social Link
+                  </Button>
+                </div>
 
                 <Button 
                   className="w-full mt-4 bg-[#BD00FF] hover:bg-[#A400E0] text-white" 
