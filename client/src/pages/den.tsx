@@ -35,40 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-
-
-const useContentFilters = () => {
-  const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
-    const stored = localStorage.getItem('browseShowNsfw');
-    return stored ? stored === "true" : false;
-  });
-
-  const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem('browseShowAiGenerated');
-    return stored ? stored === "true" : true;
-  });
-
-  const updateNsfwFilter = useCallback((checked: boolean) => {
-    setBrowseShowNsfw(checked);
-    localStorage.setItem('browseShowNsfw', checked.toString());
-    // Invalidate queries that depend on this filter
-    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
-  }, []);
-
-  const updateAiFilter = useCallback((checked: boolean) => {
-    setBrowseShowAiGenerated(checked);
-    localStorage.setItem('browseShowAiGenerated', checked.toString());
-    // Invalidate queries that depend on this filter
-    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
-  }, []);
-
-  return {
-    browseShowNsfw,
-    browseShowAiGenerated,
-    updateNsfwFilter,
-    updateAiFilter
-  };
-};
+import { useContentFilters } from "@/hooks/use-content-filters";
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
@@ -83,7 +50,6 @@ export default function Den() {
   const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
 
   const { browseShowNsfw, browseShowAiGenerated, updateNsfwFilter, updateAiFilter } = useContentFilters();
-
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],

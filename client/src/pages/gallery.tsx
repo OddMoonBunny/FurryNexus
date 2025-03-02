@@ -6,84 +6,66 @@ import { ArtGrid } from "@/components/artwork/art-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCallback, useState, useEffect } from "react";
+import { useState } from "react";
 import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useContentFilters } from "@/hooks/use-content-filters";
+import { queryClient } from "@/lib/queryClient";
 
 type ViewMode = "grid" | "list";
 type SortOption = "recent" | "popular" | "likes";
 
-const useContentFilters = () => {
-  const [filters, setFilters] = useState({
-    showNsfw: localStorage.getItem('browseShowNsfw') === 'true',
-    showAiGenerated: localStorage.getItem('browseShowAiGenerated') !== 'false'
-  });
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setFilters({
-        showNsfw: localStorage.getItem('browseShowNsfw') === 'true',
-        showAiGenerated: localStorage.getItem('browseShowAiGenerated') !== 'false'
-      });
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  return filters;
-};
-
 export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  const queryClient = useQueryClient();
-  const contentFilters = useContentFilters();
+  const { browseShowNsfw, browseShowAiGenerated } = useContentFilters();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
-
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
   });
 
+  // Add filter parameters to the query when viewing other users' galleries
+  const shouldApplyFilters = currentUser?.id !== Number(id);
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`],
+    queryKey: [`/api/users/${id}/artworks`, { filters: shouldApplyFilters ? { isNsfw: browseShowNsfw, isAiGenerated: browseShowAiGenerated } : undefined }],
+    queryFn: async ({ queryKey }) => {
+      const [_, { filters }] = queryKey;
+      let url = `/api/users/${id}/artworks`;
+
+      if (filters) {
+        const params = new URLSearchParams({
+          isNsfw: filters.isNsfw.toString(),
+          isAiGenerated: filters.isAiGenerated.toString()
+        });
+        url += `?${params}`;
+      }
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch artworks');
+      }
+      return response.json();
+    },
     enabled: !!user,
   });
 
-  const filteredAndSortedArtworks = artworks
-    ?.filter(artwork => {
-      if (currentUser?.id === Number(id)) {
-        return true;
-      }
 
-      if (!contentFilters.showNsfw && artwork.isNsfw) return false;
-      if (!contentFilters.showAiGenerated && artwork.isAiGenerated) return false;
-
-      if (!searchTerm) return true;
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        artwork.title.toLowerCase().includes(searchLower) ||
-        artwork.description?.toLowerCase().includes(searchLower) ||
-        artwork.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "recent":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "popular":
-          return b.viewCount - a.viewCount;
-        case "likes":
-          return b.likeCount - a.likeCount;
-        default:
-          return 0;
-      }
-    });
+  const sortedArtworks = artworks?.sort((a, b) => {
+    switch (sortBy) {
+      case "recent":
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case "popular":
+        return b.viewCount - a.viewCount;
+      case "likes":
+        return b.likeCount - a.likeCount;
+      default:
+        return 0;
+    }
+  });
 
   const { data: galleries } = useQuery<Gallery[]>({
     queryKey: [`/api/users/${id}/galleries`],
@@ -237,10 +219,10 @@ export default function GalleryPage() {
 
           {/* Artwork Display */}
           {viewMode === 'grid' ? (
-            <ArtGrid artworks={filteredAndSortedArtworks || []} mode="gallery" />
+            <ArtGrid artworks={sortedArtworks || []} mode="gallery" />
           ) : (
             <div className="space-y-4">
-              {(filteredAndSortedArtworks || []).map((artwork) => (
+              {(sortedArtworks || []).map((artwork) => (
                 <Card key={artwork.id} className="bg-[#2D2B55] border-[#BD00FF]">
                   <div className="flex">
                     <div className="w-48 h-48 overflow-hidden relative">
