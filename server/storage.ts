@@ -7,6 +7,8 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  listAllUsers(): Promise<User[]>; // Added
+  updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined>; // Added
 
   // Artwork operations
   getArtwork(id: string): Promise<Artwork | undefined>;
@@ -51,6 +53,20 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
+
+  async listAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ isAdmin })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+
 
   // Artwork operations
   async getArtwork(id: string): Promise<Artwork | undefined> {
@@ -116,13 +132,13 @@ export class DatabaseStorage implements IStorage {
       } catch (commentError) {
         console.log("Comments table doesn't exist or other error with comments deletion, continuing with artwork deletion");
       }
-      
+
       // Then delete any gallery associations
       await db.delete(galleryArtworks).where(eq(galleryArtworks.artworkId, id));
-      
+
       // Finally delete the artwork
       await db.delete(artworks).where(eq(artworks.id, id));
-      
+
       console.log(`Successfully deleted artwork with ID: ${id}`);
     } catch (error) {
       console.error(`Error deleting artwork with ID: ${id}:`, error);

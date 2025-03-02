@@ -143,6 +143,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const artworks = await storage.getUserArtworks(req.params.id); // Removed Number() conversion
     res.json(artworks);
   });
+  
+  // Admin routes
+  app.get("/api/admin/users", requireAuth, async (req, res) => {
+    // Check if user is admin
+    if (!req.user?.isAdmin) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    
+    const users = await storage.listAllUsers();
+    res.json(users);
+  });
+  
+  app.patch("/api/admin/users/:userId", requireAuth, async (req, res) => {
+    // Check if user is admin
+    if (!req.user?.isAdmin) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+    
+    try {
+      const { isAdmin } = req.body;
+      const userId = req.params.userId;
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const updatedUser = await storage.updateUserAdminStatus(userId, !!isAdmin);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user admin status:", error);
+      res.status(500).json({ message: "Failed to update user admin status" });
+    }
+  });
 
   // Gallery routes
   app.get("/api/galleries", async (req, res) => {
