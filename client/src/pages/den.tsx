@@ -2,8 +2,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { ProfileHeader } from "@/components/den/profile-header";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import type { User, Artwork, Gallery, InsertArtwork, InsertGallery } from "@shared/schema";
 import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertArtworkSchema, insertGallerySchema } from "@shared/schema";
@@ -38,9 +36,7 @@ import {
 
 const artworkSchema = insertArtworkSchema.extend({
   tags: z.string().transform((str) => {
-    // If it's already an array, return it
     if (Array.isArray(str)) return str;
-    // Otherwise split the string
     return str.split(",").map((s) => s.trim());
   }),
 });
@@ -48,17 +44,7 @@ const artworkSchema = insertArtworkSchema.extend({
 export default function Den() {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
-
-  // Initialize state from localStorage if available
-  const [showNsfw, setShowNsfw] = useState(() => {
-    const stored = localStorage.getItem("denShowNsfw");
-    return stored ? stored === "true" : false;
-  });
-
-  const [showAiGenerated, setShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem("denShowAiGenerated");
-    return stored ? stored === "true" : true;
-  });
+  const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -68,32 +54,27 @@ export default function Den() {
     queryKey: [`/api/users/${id}/artworks`],
   });
 
-  // Filter artworks based on toggle preferences
-  const filteredArtworks = artworks?.filter((artwork) => {
-    // For NSFW content
-    if (!showNsfw && artwork.isNsfw) {
-      return false;
-    }
+  const artworkForm = useForm<InsertArtwork & { tags: string; id?: number }>({
+    resolver: zodResolver(artworkSchema),
+    defaultValues: {
+      userId: Number(id),
+      title: "",
+      description: "",
+      imageUrl: "",
+      isNsfw: false,
+      isAiGenerated: false,
+      tags: "",
+    },
+  });
 
-    // For AI Generated content
-    if (!showAiGenerated && artwork.isAiGenerated) {
-      return false;
-    }
-
-    return true;
-  }) || [];
-
-
-  // Handlers for toggle changes
-  const handleNsfwToggle = (checked: boolean) => {
-    setShowNsfw(checked);
-    localStorage.setItem("denShowNsfw", checked.toString());
-  };
-
-  const handleAiToggle = (checked: boolean) => {
-    setShowAiGenerated(checked);
-    localStorage.setItem("denShowAiGenerated", checked.toString());
-  };
+  const galleryForm = useForm<InsertGallery>({
+    resolver: zodResolver(insertGallerySchema),
+    defaultValues: {
+      userId: Number(id),
+      name: "",
+      description: "",
+    },
+  });
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
@@ -159,6 +140,14 @@ export default function Den() {
       });
     },
   });
+
+  const { data: galleries } = useQuery<Gallery[]>({
+    queryKey: [`/api/users/${id}/galleries`],
+  });
+
+  const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
+    artworkMutation.mutate({ ...data, id: selectedArtworkId });
+  };
 
   const deleteArtworkMutation = useMutation({
     mutationFn: async (artworkId: number) => {
@@ -232,42 +221,6 @@ export default function Den() {
     },
   });
 
-  const { data: galleries } = useQuery<Gallery[]>({
-    queryKey: [`/api/users/${id}/galleries`],
-  });
-
-  const artworkForm = useForm<InsertArtwork & { tags: string; id?: number }>({
-    resolver: zodResolver(artworkSchema),
-    defaultValues: {
-      userId: Number(id),
-      title: "",
-      description: "",
-      imageUrl: "",
-      isNsfw: false,
-      isAiGenerated: false,
-      tags: "",
-    },
-  });
-
-  const galleryForm = useForm<InsertGallery>({
-    resolver: zodResolver(insertGallerySchema),
-    defaultValues: {
-      userId: Number(id),
-      name: "",
-      description: "",
-      artworkIds: [],
-    },
-  });
-
-  const [selectedArtworkId, setSelectedArtworkId] = useState<number | null>(null);
-  const onSubmitArtwork = (data: InsertArtwork & { tags: string; id?: number }) => {
-    artworkMutation.mutate({ ...data, id: selectedArtworkId });
-  };
-
-  useEffect(() => {
-    // No cleanup needed, localStorage persistence is intended.
-  }, []);
-
 
   if (!user) {
     return <div>Loading...</div>;
@@ -279,7 +232,7 @@ export default function Den() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold text-white">Artist's Den</h1>
-          {user.isAdmin && (
+          {user?.isAdmin && (
             <Badge variant="outline" className="border-[#00F9FF] text-[#00F9FF] flex items-center gap-1">
               <Shield className="h-3 w-3" />
               Admin
@@ -292,8 +245,7 @@ export default function Den() {
             <TabsTrigger value="artwork">Artwork</TabsTrigger>
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="galleries">Galleries</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            {user.isAdmin && (
+            {user?.isAdmin && (
               <Link href="/admin">
                 <TabsTrigger value="admin" className="text-[#00F9FF] hover:bg-[#00F9FF]/10 cursor-pointer">
                   <div className="flex items-center gap-2">
@@ -307,25 +259,7 @@ export default function Den() {
 
           <TabsContent value="artwork">
             <div className="space-y-8">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="nsfw"
-                    checked={showNsfw}
-                    onCheckedChange={handleNsfwToggle}
-                  />
-                  <Label htmlFor="nsfw">Show NSFW Content</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="ai"
-                    checked={showAiGenerated}
-                    onCheckedChange={handleAiToggle}
-                  />
-                  <Label htmlFor="ai">Show AI Generated Content</Label>
-                </div>
-              </div>
-              <ArtGrid artworks={filteredArtworks} />
+              <ArtGrid artworks={artworks || []} />
             </div>
           </TabsContent>
 
@@ -720,23 +654,7 @@ export default function Den() {
                 <CardTitle className="text-xl text-white">Content Preferences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <Switch
-                    id="nsfw"
-                    checked={showNsfw}
-                    onCheckedChange={handleNsfwToggle}
-                  />
-                  <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <Switch
-                    id="ai"
-                    checked={showAiGenerated}
-                    onCheckedChange={handleAiToggle}
-                  />
-                  <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
-                </div>
+                {/*Removed the content filter settings from here*/}
               </CardContent>
             </Card>
           </TabsContent>
