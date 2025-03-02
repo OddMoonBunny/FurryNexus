@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   profileImage: text("profile_image"),
   bannerImage: text("banner_image"),
   isAdmin: boolean("is_admin").notNull().default(false),
+  isBanned: boolean("is_banned").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
@@ -35,14 +36,12 @@ export const galleries = pgTable("galleries", {
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
-// Junction table for gallery_artworks
 export const galleryArtworks = pgTable("gallery_artworks", {
   galleryId: uuid("gallery_id").notNull().references(() => galleries.id),
   artworkId: uuid("artwork_id").notNull().references(() => artworks.id),
   addedAt: timestamp("added_at").notNull().defaultNow()
 });
 
-// New comments table
 export const comments = pgTable("comments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -51,7 +50,6 @@ export const comments = pgTable("comments", {
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
 
-// Define relationships
 export const usersRelations = relations(users, ({ many }) => ({
   artworks: many(artworks),
   galleries: many(galleries),
@@ -97,15 +95,12 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   })
 }));
 
-
-// Session table for auth
 export const sessions = pgTable("sessions", {
   sid: text("sid").primaryKey(),
   sess: text("sess").notNull(),
   expire: timestamp("expire").notNull()
 });
 
-// Schemas for data insertion
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true
@@ -126,7 +121,6 @@ export const insertCommentSchema = createInsertSchema(comments).omit({
   createdAt: true
 });
 
-// Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Artwork = typeof artworks.$inferSelect;
