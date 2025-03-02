@@ -61,16 +61,32 @@ export default function Den() {
 
   // Filter artworks based on toggle preferences
   const filteredArtworks = artworks?.filter((artwork) => {
-    // For non-authenticated users, hide NSFW content
+    // For NSFW content
     if (!showNsfw && artwork.isNsfw) {
       return false;
     }
-    // Apply AI Generated filter
+
+    // For AI Generated content
     if (!showAiGenerated && artwork.isAiGenerated) {
       return false;
     }
+
     return true;
-  });
+  }) || [];
+
+  console.log('Toggle States:', { showNsfw, showAiGenerated });
+  console.log('Filtered Artworks:', filteredArtworks);
+
+  // Handlers for toggle changes
+  const handleNsfwToggle = (checked: boolean) => {
+    console.log('NSFW Toggle Changed:', checked);
+    setShowNsfw(checked);
+  };
+
+  const handleAiToggle = (checked: boolean) => {
+    console.log('AI Toggle Changed:', checked);
+    setShowAiGenerated(checked);
+  };
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
@@ -284,7 +300,7 @@ export default function Den() {
                   <Switch
                     id="nsfw"
                     checked={showNsfw}
-                    onCheckedChange={setShowNsfw}
+                    onCheckedChange={handleNsfwToggle}
                   />
                   <Label htmlFor="nsfw">Show NSFW Content</Label>
                 </div>
@@ -292,12 +308,12 @@ export default function Den() {
                   <Switch
                     id="ai"
                     checked={showAiGenerated}
-                    onCheckedChange={setShowAiGenerated}
+                    onCheckedChange={handleAiToggle}
                   />
                   <Label htmlFor="ai">Show AI Generated Content</Label>
                 </div>
               </div>
-            <ArtGrid artworks={filteredArtworks || []} />
+              <ArtGrid artworks={filteredArtworks} />
             </div>
           </TabsContent>
 
@@ -696,7 +712,7 @@ export default function Den() {
                   <Switch
                     id="nsfw"
                     checked={showNsfw}
-                    onCheckedChange={setShowNsfw}
+                    onCheckedChange={handleNsfwToggle}
                   />
                   <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
                 </div>
@@ -705,7 +721,7 @@ export default function Den() {
                   <Switch
                     id="ai"
                     checked={showAiGenerated}
-                    onCheckedChange={setShowAiGenerated}
+                    onCheckedChange={handleAiToggle}
                   />
                   <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
                 </div>
