@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import type { Artwork, Gallery, User } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,9 +6,7 @@ import { ArtGrid } from "@/components/artwork/art-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,40 +20,13 @@ export default function GalleryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
-  const [showNsfw, setShowNsfw] = useState(() => {
-    const saved = localStorage.getItem(`galleryShowNsfw_${id}`);
-    return saved ? saved === "true" : false;
-  });
-  const [showAiGenerated, setShowAiGenerated] = useState(() => {
-    const saved = localStorage.getItem(`galleryShowAiGenerated_${id}`);
-    return saved ? saved === "true" : true;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(`galleryShowNsfw_${id}`, showNsfw.toString());
-  }, [showNsfw, id]);
-
-  useEffect(() => {
-    localStorage.setItem(`galleryShowAiGenerated_${id}`, showAiGenerated.toString());
-  }, [showAiGenerated, id]);
 
   const { data: user, isLoading: isLoadingUser } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
   });
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`, { showNsfw, showAiGenerated }],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        isNsfw: showNsfw.toString(),
-        isAiGenerated: showAiGenerated.toString()
-      });
-      const response = await fetch(`/api/users/${id}/artworks?${params}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch artworks');
-      }
-      return response.json();
-    },
+    queryKey: [`/api/users/${id}/artworks`],
     enabled: !!user,
   });
 
@@ -66,9 +37,6 @@ export default function GalleryPage() {
 
   const filteredAndSortedArtworks = artworks
     ?.filter(artwork => {
-      if (!showNsfw && artwork.isNsfw) return false;
-      if (!showAiGenerated && artwork.isAiGenerated) return false;
-
       if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -233,37 +201,6 @@ export default function GalleryPage() {
               </Button>
             </div>
           </div>
-
-          {/* Content Filter Card */}
-          <Card className="bg-[#2D2B55] border-[#BD00FF]">
-            <CardHeader>
-              <CardTitle className="text-lg text-white">Content Filters</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="show-nsfw" className="text-white">Show NSFW Content</Label>
-                  <p className="text-sm text-gray-400">Toggle to show or hide NSFW content</p>
-                </div>
-                <Switch
-                  id="show-nsfw"
-                  checked={showNsfw}
-                  onCheckedChange={setShowNsfw}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="show-ai" className="text-white">Show AI Generated Art</Label>
-                  <p className="text-sm text-gray-400">Toggle to show or hide AI-generated artwork</p>
-                </div>
-                <Switch
-                  id="show-ai"
-                  checked={showAiGenerated}
-                  onCheckedChange={setShowAiGenerated}
-                />
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Artwork Display */}
           {viewMode === 'grid' ? (

@@ -663,11 +663,41 @@ export default function Den() {
           <TabsContent value="profile">
             <Card className="bg-[#2D2B55] border-[#BD00FF]">
               <CardHeader>
-                <CardTitle className="text-xl text-white">Profile Settings</CardTitle>
+                <CardTitle className="text-xl text-white">Den Settings</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Content Filters */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-white">Content Filter Settings</h3>
+                  <div className="space-y-4 border border-[#32325D] rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="den-show-nsfw" className="text-white">Show NSFW Content</Label>
+                        <p className="text-sm text-gray-400">Toggle to show or hide NSFW content in your den</p>
+                      </div>
+                      <Switch
+                        id="den-show-nsfw"
+                        checked={denShowNsfw}
+                        onCheckedChange={setDenShowNsfw}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="den-show-ai" className="text-white">Show AI Generated Art</Label>
+                        <p className="text-sm text-gray-400">Toggle to show or hide AI-generated artwork in your den</p>
+                      </div>
+                      <Switch
+                        id="den-show-ai"
+                        checked={denShowAiGenerated}
+                        onCheckedChange={setDenShowAiGenerated}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Profile Images */}
                 <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-white">Profile Images</h3>
                   <div className="space-y-2">
                     <Label className="text-white">Profile Banner</Label>
                     <div className="aspect-[3/1] bg-[#1A1A2E] rounded-lg border-2 border-dashed border-[#BD00FF] overflow-hidden">
