@@ -53,57 +53,9 @@ export default function Den() {
     queryKey: [`/api/users/${id}`],
   });
 
-  const updatePreferencesMutation = useMutation({
-    mutationFn: async (data: { showNsfw?: boolean; showAiGenerated?: boolean }) => {
-      const res = await apiRequest("PATCH", `/api/users/${id}`, data);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/users/${id}`] });
-      toast({
-        title: "Success",
-        description: "Preferences updated successfully!",
-      });
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
-    },
-  });
+  const [showNsfw, setShowNsfw] = useState(false);
+  const [showAiGenerated, setShowAiGenerated] = useState(true);
 
-  const { data: artworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`],
-  });
-
-  const { data: galleries } = useQuery<Gallery[]>({
-    queryKey: [`/api/users/${id}/galleries`],
-  });
-
-  const artworkForm = useForm<InsertArtwork & { tags: string; id?: number }>({
-    resolver: zodResolver(artworkSchema),
-    defaultValues: {
-      userId: Number(id),
-      title: "",
-      description: "",
-      imageUrl: "",
-      isNsfw: false,
-      isAiGenerated: false,
-      tags: "",
-    },
-  });
-
-  const galleryForm = useForm<InsertGallery>({
-    resolver: zodResolver(insertGallerySchema),
-    defaultValues: {
-      userId: Number(id),
-      name: "",
-      description: "",
-      artworkIds: [],
-    },
-  });
 
   const artworkMutation = useMutation({
     mutationFn: async (data: InsertArtwork & { id?: number }) => {
@@ -239,6 +191,37 @@ export default function Den() {
         title: "Error",
         description: "Failed to add artwork to gallery",
       });
+    },
+  });
+
+  const { data: artworks } = useQuery<Artwork[]>({
+    queryKey: [`/api/users/${id}/artworks`],
+  });
+
+  const { data: galleries } = useQuery<Gallery[]>({
+    queryKey: [`/api/users/${id}/galleries`],
+  });
+
+  const artworkForm = useForm<InsertArtwork & { tags: string; id?: number }>({
+    resolver: zodResolver(artworkSchema),
+    defaultValues: {
+      userId: Number(id),
+      title: "",
+      description: "",
+      imageUrl: "",
+      isNsfw: false,
+      isAiGenerated: false,
+      tags: "",
+    },
+  });
+
+  const galleryForm = useForm<InsertGallery>({
+    resolver: zodResolver(insertGallerySchema),
+    defaultValues: {
+      userId: Number(id),
+      name: "",
+      description: "",
+      artworkIds: [],
     },
   });
 
@@ -681,10 +664,8 @@ export default function Den() {
                 <div className="flex items-center space-x-4">
                   <Switch
                     id="nsfw"
-                    checked={user?.showNsfw ?? false}
-                    onCheckedChange={(checked) => {
-                      updatePreferencesMutation.mutate({ showNsfw: checked });
-                    }}
+                    checked={showNsfw}
+                    onCheckedChange={setShowNsfw}
                   />
                   <Label htmlFor="nsfw" className="text-white">Show NSFW Content</Label>
                 </div>
@@ -692,10 +673,8 @@ export default function Den() {
                 <div className="flex items-center space-x-4">
                   <Switch
                     id="ai"
-                    checked={user?.showAiGenerated ?? true}
-                    onCheckedChange={(checked) => {
-                      updatePreferencesMutation.mutate({ showAiGenerated: checked });
-                    }}
+                    checked={showAiGenerated}
+                    onCheckedChange={setShowAiGenerated}
                   />
                   <Label htmlFor="ai" className="text-white">Show AI Generated Content</Label>
                 </div>
