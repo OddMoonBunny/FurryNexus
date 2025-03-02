@@ -1,32 +1,63 @@
 import { useState, useCallback } from "react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 export const useContentFilters = () => {
+  const { user } = useAuth();
+
   const [browseShowNsfw, setBrowseShowNsfw] = useState(() => {
-    const stored = localStorage.getItem('browseShowNsfw');
-    return stored ? stored === "true" : false;
+    return user?.showNsfw ?? false;
   });
 
   const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(() => {
-    const stored = localStorage.getItem('browseShowAiGenerated');
-    return stored ? stored === "true" : true;
+    return user?.showAiGenerated ?? true;
   });
 
-  const updateNsfwFilter = useCallback((checked: boolean) => {
+  const updateNsfwFilter = useCallback(async (checked: boolean) => {
     setBrowseShowNsfw(checked);
-    localStorage.setItem('browseShowNsfw', checked.toString());
-    // Invalidate all queries that might be affected by filter changes
-    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-  }, []);
 
-  const updateAiFilter = useCallback((checked: boolean) => {
-    setBrowseShowAiGenerated(checked);
-    localStorage.setItem('browseShowAiGenerated', checked.toString());
+    if (user) {
+      try {
+        await apiRequest("PATCH", `/api/users/${user.id}/preferences`, {
+          showNsfw: checked
+        });
+        // Update the user data in the cache
+        queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+          ...oldData,
+          showNsfw: checked
+        }));
+      } catch (error) {
+        console.error("Failed to update NSFW preference:", error);
+      }
+    }
+
     // Invalidate all queries that might be affected by filter changes
     queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
     queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-  }, []);
+  }, [user]);
+
+  const updateAiFilter = useCallback(async (checked: boolean) => {
+    setBrowseShowAiGenerated(checked);
+
+    if (user) {
+      try {
+        await apiRequest("PATCH", `/api/users/${user.id}/preferences`, {
+          showAiGenerated: checked
+        });
+        // Update the user data in the cache
+        queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+          ...oldData,
+          showAiGenerated: checked
+        }));
+      } catch (error) {
+        console.error("Failed to update AI-generated preference:", error);
+      }
+    }
+
+    // Invalidate all queries that might be affected by filter changes
+    queryClient.invalidateQueries({ queryKey: ['/api/artworks'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+  }, [user]);
 
   return {
     browseShowNsfw,

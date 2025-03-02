@@ -139,18 +139,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(user);
   });
 
+  // Add user preferences update endpoint
+  app.patch("/api/users/:userId/preferences", requireAuth, async (req, res) => {
+    try {
+      // Ensure users can only update their own preferences
+      if (req.user!.id !== Number(req.params.userId)) {
+        return res.status(403).json({ message: "Not authorized to update preferences" });
+      }
+
+      const { showNsfw, showAiGenerated } = req.body;
+
+      const updatedUser = await storage.updateUserPreferences(req.params.userId, {
+        showNsfw: showNsfw !== undefined ? showNsfw : req.user!.showNsfw,
+        showAiGenerated: showAiGenerated !== undefined ? showAiGenerated : req.user!.showAiGenerated
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
+    }
+  });
+
+  // Update artwork fetching to use user preferences
   app.get("/api/users/:id/artworks", async (req, res) => {
     try {
       const filters: { isNsfw?: boolean; isAiGenerated?: boolean } = {};
 
-      // Parse the NSFW parameter
-      if (req.query.isNsfw !== undefined) {
-        filters.isNsfw = req.query.isNsfw === "true";
-      }
-
-      // Parse the AI Generated parameter
-      if (req.query.isAiGenerated !== undefined) {
-        filters.isAiGenerated = req.query.isAiGenerated === "true";
+      // If viewing someone else's artworks, apply the viewer's preferences
+      if (req.user && req.user.id !== Number(req.params.id)) {
+        filters.isNsfw = req.user.showNsfw;
+        filters.isAiGenerated = req.user.showAiGenerated;
       }
 
       console.log("Applying filters for user artworks:", filters);
