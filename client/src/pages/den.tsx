@@ -60,13 +60,6 @@ export default function Den() {
     return stored ? stored === "true" : true;
   });
 
-  useEffect(() => {
-    localStorage.setItem('browseShowNsfw', browseShowNsfw.toString());
-  }, [browseShowNsfw]);
-
-  useEffect(() => {
-    localStorage.setItem('browseShowAiGenerated', browseShowAiGenerated.toString());
-  }, [browseShowAiGenerated]);
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${id}`],
@@ -695,7 +688,10 @@ export default function Den() {
                       <Switch
                         id="browse-show-nsfw"
                         checked={browseShowNsfw}
-                        onCheckedChange={setBrowseShowNsfw}
+                        onCheckedChange={(checked) => {
+                          setBrowseShowNsfw(checked);
+                          localStorage.setItem('browseShowNsfw', checked.toString());
+                        }}
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -706,7 +702,10 @@ export default function Den() {
                       <Switch
                         id="browse-show-ai"
                         checked={browseShowAiGenerated}
-                        onCheckedChange={setBrowseShowAiGenerated}
+                        onCheckedChange={(checked) => {
+                          setBrowseShowAiGenerated(checked);
+                          localStorage.setItem('browseShowAiGenerated', checked.toString());
+                        }}
                       />
                     </div>
                   </div>
