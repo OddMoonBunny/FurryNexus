@@ -2,69 +2,105 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "./use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient } from "@tanstack/react-query";
+import type { User } from "@shared/schema";
+
+interface UserPreferences {
+  showNsfw: boolean;
+  showAiGenerated: boolean;
+}
 
 export function useContentFilters() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Always show all content
+  // Default to showing all content
   const [browseShowNsfw, setBrowseShowNsfw] = useState(true);
   const [browseShowAiGenerated, setBrowseShowAiGenerated] = useState(true);
 
+  // Safely get localStorage value
+  const getStoredPref = (key: string): boolean | null => {
+    try {
+      const value = localStorage.getItem(key);
+      return value === null ? null : value === 'true';
+    } catch {
+      return null;
+    }
+  };
+
+  // Safely set localStorage value
+  const setStoredPref = (key: string, value: boolean): void => {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch {
+      console.warn('Failed to save preference to localStorage');
+    }
+  };
+
   // Update local state when user preferences change
   useEffect(() => {
-    if (user) {
-      // Only update from user object if we don't have localStorage values
-      const storedNsfwPref = localStorage.getItem(`userNsfwPref_${user.id}`);
-      const storedAiPref = localStorage.getItem(`userAiPref_${user.id}`);
+    if (!user) return;
 
-      if (storedNsfwPref === null) {
-        setBrowseShowNsfw(user.showNsfw);
-        localStorage.setItem(`userNsfwPref_${user.id}`, String(user.showNsfw));
-      } else {
-        setBrowseShowNsfw(storedNsfwPref === 'true');
-      }
+    const storedNsfwPref = getStoredPref(`userNsfwPref_${user.id}`);
+    const storedAiPref = getStoredPref(`userAiPref_${user.id}`);
 
-      if (storedAiPref === null) {
-        setBrowseShowAiGenerated(user.showAiGenerated);
-        localStorage.setItem(`userAiPref_${user.id}`, String(user.showAiGenerated));
-      } else {
-        setBrowseShowAiGenerated(storedAiPref === 'true');
-      }
+    if (storedNsfwPref === null) {
+      setBrowseShowNsfw(user.showNsfw ?? true);
+      setStoredPref(`userNsfwPref_${user.id}`, user.showNsfw ?? true);
+    } else {
+      setBrowseShowNsfw(storedNsfwPref);
+    }
+
+    if (storedAiPref === null) {
+      setBrowseShowAiGenerated(user.showAiGenerated ?? true);
+      setStoredPref(`userAiPref_${user.id}`, user.showAiGenerated ?? true);
+    } else {
+      setBrowseShowAiGenerated(storedAiPref);
     }
   }, [user?.id, user?.showNsfw, user?.showAiGenerated]);
 
   // Function to update NSFW filter
-  const updateNsfwFilter = useCallback((value) => {
-    setBrowseShowNsfw(value);
-    if (user) {
-      localStorage.setItem(`userNsfwPref_${user.id}`, String(value));
+  const updateNsfwFilter = useCallback(async (value: boolean) => {
+    if (!user) return;
 
-      // Optionally update user preferences on the server
-      apiRequest(`/api/users/${user.id}/preferences`, {
+    setBrowseShowNsfw(value);
+    setStoredPref(`userNsfwPref_${user.id}`, value);
+
+    try {
+      await apiRequest<UserPreferences>({
+        url: `/api/users/${user.id}/preferences`,
         method: 'PATCH',
-        body: { showNsfw: value }
-      }).then(() => {
-        // Invalidate user query to refresh data
-        queryClient.invalidateQueries(['/api/user']);
+        data: { showNsfw: value }
       });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    } catch (error) {
+      console.error('Failed to update NSFW preference:', error);
+      // Revert on error
+      setBrowseShowNsfw(!value);
+      setStoredPref(`userNsfwPref_${user.id}`, !value);
     }
   }, [user, queryClient]);
 
   // Function to update AI-generated content filter
-  const updateAiFilter = useCallback((value) => {
-    setBrowseShowAiGenerated(value);
-    if (user) {
-      localStorage.setItem(`userAiPref_${user.id}`, String(value));
+  const updateAiFilter = useCallback(async (value: boolean) => {
+    if (!user) return;
 
-      // Optionally update user preferences on the server
-      apiRequest(`/api/users/${user.id}/preferences`, {
+    setBrowseShowAiGenerated(value);
+    setStoredPref(`userAiPref_${user.id}`, value);
+
+    try {
+      await apiRequest<UserPreferences>({
+        url: `/api/users/${user.id}/preferences`,
         method: 'PATCH',
-        body: { showAiGenerated: value }
-      }).then(() => {
-        // Invalidate user query to refresh data
-        queryClient.invalidateQueries(['/api/user']);
+        data: { showAiGenerated: value }
       });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+    } catch (error) {
+      console.error('Failed to update AI content preference:', error);
+      // Revert on error
+      setBrowseShowAiGenerated(!value);
+      setStoredPref(`userAiPref_${user.id}`, !value);
     }
   }, [user, queryClient]);
 
