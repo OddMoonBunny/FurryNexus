@@ -1,4 +1,4 @@
-import { ArtworkDetail } from "./artwork-detail";
+import { ArtCard } from "./art-card";
 import type { Artwork } from "@shared/schema";
 
 interface ArtGridProps {
@@ -8,13 +8,14 @@ interface ArtGridProps {
 
 export function ArtGrid({ artworks, mode = "gallery" }: ArtGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {artworks.map((artwork) => (
-        <ArtworkDetail 
-          key={artwork.id} 
-          artwork={artwork} 
-          mode={mode}
-        />
+        <div key={artwork.id} className="aspect-[16/10]">
+          <ArtCard 
+            artwork={artwork} 
+            mode={mode}
+          />
+        </div>
       ))}
     </div>
   );

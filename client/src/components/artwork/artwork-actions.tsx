@@ -1,7 +1,6 @@
-
 import * as React from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   ContextMenu,
@@ -20,8 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { Toast } from "@/components/ui/toast";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { Artwork } from "@shared/schema";
 
 interface ArtworkActionsProps {
@@ -37,7 +35,7 @@ export function ArtworkActions({
   children,
   onAddToGallery 
 }: ArtworkActionsProps) {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -47,12 +45,12 @@ export function ArtworkActions({
       const response = await fetch(`/api/artworks/${artwork.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to delete artwork");
       }
-      
+
       return true;
     },
     onSuccess: () => {
@@ -91,10 +89,10 @@ export function ArtworkActions({
             className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
             onClick={() => navigate(`/artwork/${artwork.id}`)}
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="h-4 w-4" />
             View Details
           </ContextMenuItem>
-          
+
           {isOwner && (
             <>
               <ContextMenuSeparator className="bg-[#BD00FF]/30" />
@@ -102,31 +100,31 @@ export function ArtworkActions({
                 className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
                 onClick={() => navigate(`/edit-artwork/${artwork.id}`)}
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="h-4 w-4" />
                 Edit
               </ContextMenuItem>
               <ContextMenuItem 
                 className="cursor-pointer hover:bg-[#1A1A2E] text-[#FF1B8D] flex items-center gap-2"
                 onClick={() => setDeleteDialogOpen(true)}
               >
-                <Trash className="w-4 h-4" />
+                <Trash className="h-4 w-4" />
                 Delete
               </ContextMenuItem>
             </>
           )}
-          
+
           <ContextMenuSeparator className="bg-[#BD00FF]/30" />
-          
+
           <ContextMenuItem 
             className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
             onClick={() => {
               if (onAddToGallery) onAddToGallery();
             }}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             Add to Gallery
           </ContextMenuItem>
-          
+
           <ContextMenuItem 
             className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
             onClick={() => {
@@ -138,12 +136,12 @@ export function ArtworkActions({
               });
             }}
           >
-            <Share className="w-4 h-4" />
+            <Share className="h-4 w-4" />
             Share
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
-      
+
       <ConfirmationDialog
         title="Delete Artwork"
         description="Are you sure you want to delete this artwork? This action cannot be undone."
@@ -163,8 +161,6 @@ export function ArtworkActionsButton({
   isOwner,
   onAddToGallery 
 }: Omit<ArtworkActionsProps, "children">) {
-  const [open, setOpen] = useState(false);
-  
   return (
     <ArtworkActions 
       artwork={artwork} 
