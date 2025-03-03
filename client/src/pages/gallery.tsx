@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Grid2X2, List, Search, Heart, MessageSquare, ExternalLink, AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { useContentFilters } from "@/hooks/use-content-filters";
+//import { useContentFilters } from "@/hooks/use-content-filters"; //Removed
 
 type ViewMode = "grid" | "list";
 type SortOption = "recent" | "popular" | "likes";
@@ -18,7 +18,6 @@ type SortOption = "recent" | "popular" | "likes";
 export default function GalleryPage() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  const { browseShowNsfw, browseShowAiGenerated } = useContentFilters();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
@@ -27,29 +26,8 @@ export default function GalleryPage() {
     queryKey: [`/api/users/${id}`],
   });
 
-  // Add filter parameters to the query when viewing other users' galleries
-  const shouldApplyFilters = currentUser?.id !== Number(id);
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
-    queryKey: [`/api/users/${id}/artworks`, { filters: shouldApplyFilters ? { isNsfw: browseShowNsfw, isAiGenerated: browseShowAiGenerated } : undefined }],
-    queryFn: async ({ queryKey }) => {
-      const [_, { filters }] = queryKey;
-      let url = `/api/users/${id}/artworks`;
-
-      if (filters) {
-        const params = new URLSearchParams({
-          isNsfw: filters.isNsfw.toString(),
-          isAiGenerated: filters.isAiGenerated.toString()
-        });
-        url += `?${params}`;
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch artworks');
-      }
-      return response.json();
-    },
-    enabled: !!user,
+    queryKey: [`/api/users/${id}/artworks`],
   });
 
   // Filter by search term and sort

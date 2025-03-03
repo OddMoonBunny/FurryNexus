@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import type { Artwork, Gallery } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,36 +13,6 @@ export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
 
-  // Read content filter settings from localStorage (set in den)
-  const [showNsfw, setShowNsfw] = useState(() => {
-    if (!user) return false;
-    const stored = localStorage.getItem(`denShowNsfw_${user.id}`);
-    return stored === "true";
-  });
-
-  const [showAiGenerated, setShowAiGenerated] = useState(() => {
-    if (!user) return true;
-    const stored = localStorage.getItem(`denShowAiGenerated_${user.id}`);
-    return stored === null ? true : stored === "true";
-  });
-
-  // Update filter settings when localStorage changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      if (!user) {
-        setShowNsfw(false);
-        return;
-      }
-      const storedNsfw = localStorage.getItem(`denShowNsfw_${user.id}`);
-      const storedAi = localStorage.getItem(`denShowAiGenerated_${user.id}`);
-      setShowNsfw(storedNsfw === "true");
-      setShowAiGenerated(storedAi === null ? true : storedAi === "true");
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [user]);
-
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks"],
   });
@@ -51,24 +21,8 @@ export default function Browser() {
     queryKey: ["/api/galleries"],
   });
 
-  // Filter artworks based on search term and content filters
+  // Filter artworks based on search term only
   const filteredArtworks = artworks?.filter(artwork => {
-    // For non-authenticated users, hide NSFW content
-    if (!user && artwork.isNsfw) {
-      return false;
-    }
-
-    // Apply NSFW filter for authenticated users
-    if (user && !showNsfw && artwork.isNsfw) {
-      return false;
-    }
-
-    // Apply AI Generated filter
-    if (!showAiGenerated && artwork.isAiGenerated) {
-      return false;
-    }
-
-    // Apply search filter if there's a search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       return (
@@ -77,7 +31,6 @@ export default function Browser() {
         artwork.tags.some(tag => tag.toLowerCase().includes(searchLower))
       );
     }
-
     return true;
   });
 
@@ -122,9 +75,7 @@ export default function Browser() {
               ) : !filteredArtworks?.length ? (
                 <div className="text-center py-12">
                   <h2 className="text-xl font-semibold text-white mb-2">No artworks found</h2>
-                  <p className="text-gray-400">
-                    {!user ? "Please log in to view NSFW content" : "Try adjusting your search terms or content filters in your den"}
-                  </p>
+                  <p className="text-gray-400">Try adjusting your search terms</p>
                 </div>
               ) : (
                 <ArtGrid artworks={filteredArtworks} />
