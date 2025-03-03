@@ -20,7 +20,7 @@ export function AgeGate() {
         // Use sessionStorage if user doesn't want to remember
         sessionStorage.setItem('age-verified', 'true');
       }
-      setLocation('/browse');
+      setLocation('/browser');
     } else {
       setError(true);
       // If not verified, redirect to a safe page
