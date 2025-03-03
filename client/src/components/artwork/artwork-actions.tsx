@@ -35,7 +35,7 @@ export function ArtworkActions({
   children,
   onAddToGallery 
 }: ArtworkActionsProps) {
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -54,15 +54,14 @@ export function ArtworkActions({
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["artworks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/artworks"] });
       queryClient.invalidateQueries({ 
-        queryKey: ["userArtworks", artwork.userId.toString()] 
+        queryKey: [`/api/users/${artwork.userId}/artworks`]
       });
-      navigate("/");
+      setLocation("/");
       toast({
         title: "Artwork deleted",
         description: "Your artwork has been deleted successfully",
-        variant: "default",
       });
     },
     onError: (error) => {
@@ -81,13 +80,13 @@ export function ArtworkActions({
   return (
     <>
       <ContextMenu>
-        <ContextMenuTrigger asChild>
+        <ContextMenuTrigger asChild data-sidebar>
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent className="bg-[#2D2B55] border-[#BD00FF] text-white">
           <ContextMenuItem 
             className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
-            onClick={() => navigate(`/artwork/${artwork.id}`)}
+            onClick={() => setLocation(`/artwork/${artwork.id}`)}
           >
             <ExternalLink className="h-4 w-4" />
             View Details
@@ -98,7 +97,7 @@ export function ArtworkActions({
               <ContextMenuSeparator className="bg-[#BD00FF]/30" />
               <ContextMenuItem 
                 className="cursor-pointer hover:bg-[#1A1A2E] flex items-center gap-2"
-                onClick={() => navigate(`/edit-artwork/${artwork.id}`)}
+                onClick={() => setLocation(`/edit-artwork/${artwork.id}`)}
               >
                 <Edit className="h-4 w-4" />
                 Edit
@@ -132,7 +131,6 @@ export function ArtworkActions({
               toast({
                 title: "Link copied",
                 description: "Artwork link copied to clipboard",
-                variant: "default",
               });
             }}
           >
@@ -155,7 +153,6 @@ export function ArtworkActions({
   );
 }
 
-// Alternative trigger button if you don't want context menu
 export function ArtworkActionsButton({ 
   artwork, 
   isOwner,
@@ -171,6 +168,7 @@ export function ArtworkActionsButton({
         variant="ghost" 
         size="icon"
         className="absolute top-2 right-2 bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 p-0"
+        data-sidebar
       >
         <MoreVertical className="h-4 w-4" />
       </Button>

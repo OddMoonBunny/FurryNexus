@@ -33,16 +33,16 @@ export function ArtCard({ artwork, onAddToGallery, mode = "gallery" }: ArtCardPr
           />
 
           {/* Content badges */}
-          <div className="absolute top-4 left-4 flex gap-3 z-10">
+          <div className="absolute top-2 left-2 flex gap-2 z-10">
             {artwork.isNsfw && (
-              <Badge variant="destructive" className="bg-red-500/90 backdrop-blur-sm text-lg py-2 px-4">
-                <AlertTriangle className="h-5 w-5 mr-2" />
+              <Badge variant="destructive" className="bg-red-500/90 backdrop-blur-sm">
+                <AlertTriangle className="h-3 w-3 mr-1" />
                 NSFW
               </Badge>
             )}
             {artwork.isAiGenerated && (
-              <Badge className="bg-purple-500/90 backdrop-blur-sm text-lg py-2 px-4">
-                <Sparkles className="h-5 w-5 mr-2" />
+              <Badge className="bg-purple-500/90 backdrop-blur-sm">
+                <Sparkles className="h-3 w-3 mr-1" />
                 AI
               </Badge>
             )}
@@ -50,12 +50,12 @@ export function ArtCard({ artwork, onAddToGallery, mode = "gallery" }: ArtCardPr
 
           {/* Hover Overlay */}
           <div className={`absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300 flex flex-col ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="flex-1 p-6">
+            <div className="flex-1 p-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-white mb-3">{artwork.title}</h3>
+                  <h3 className="text-lg font-bold text-white mb-1">{artwork.title}</h3>
                   {artwork.description && (
-                    <p className="text-lg text-gray-200 line-clamp-3">{artwork.description}</p>
+                    <p className="text-sm text-gray-200 line-clamp-2">{artwork.description}</p>
                   )}
                 </div>
                 <ArtworkActions 
@@ -66,32 +66,32 @@ export function ArtCard({ artwork, onAddToGallery, mode = "gallery" }: ArtCardPr
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="bg-black/40 hover:bg-black/60 text-white rounded-full h-12 w-12 p-0"
+                    className="bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 p-0"
                   >
-                    <MoreVertical className="h-6 w-6" />
+                    <MoreVertical className="h-4 w-4" />
                   </Button>
                 </ArtworkActions>
               </div>
             </div>
 
             {/* Bottom action bar */}
-            <div className="border-t border-white/20 bg-black/40 p-4">
-              <div className="flex items-center gap-6">
+            <div className="border-t border-white/20 bg-black/40 p-2">
+              <div className="flex items-center gap-4">
                 <Button 
                   variant="ghost" 
-                  size="lg" 
-                  className="text-white hover:bg-white/20 hover:text-white flex items-center gap-3"
+                  size="sm" 
+                  className="text-white hover:bg-white/20 hover:text-white flex items-center gap-2"
                 >
-                  <Heart className="h-6 w-6" />
-                  <span className="text-lg">{artwork.likeCount}</span>
+                  <Heart className="h-4 w-4" />
+                  <span className="text-sm">{artwork.likeCount}</span>
                 </Button>
                 <Button 
                   variant="ghost" 
-                  size="lg" 
-                  className="text-white hover:bg-white/20 hover:text-white flex items-center gap-3"
+                  size="sm" 
+                  className="text-white hover:bg-white/20 hover:text-white flex items-center gap-2"
                 >
-                  <MessageSquare className="h-6 w-6" />
-                  <span className="text-lg">0</span>
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="text-sm">0</span>
                 </Button>
               </div>
             </div>

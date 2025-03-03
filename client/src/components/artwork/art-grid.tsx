@@ -8,9 +8,9 @@ interface ArtGridProps {
 
 export function ArtGrid({ artworks, mode = "gallery" }: ArtGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {artworks.map((artwork) => (
-        <div key={artwork.id} className="aspect-[16/10]">
+        <div key={artwork.id} className="aspect-[4/3]">
           <ArtCard 
             artwork={artwork} 
             mode={mode}
