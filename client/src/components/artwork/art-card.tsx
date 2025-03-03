@@ -24,36 +24,37 @@ export function ArtCard({ artwork, onAddToGallery }: ArtCardProps) {
       onMouseLeave={() => setIsHovered(false)}
     >
       <Card className="bg-[#2D2B55] border-[#BD00FF] hover:border-[#FF1B8D] transition-all duration-300 cursor-pointer overflow-hidden h-full flex flex-col relative">
-        <div className="aspect-square bg-[#1A1A2E] overflow-hidden relative">
+        {/* Increased height for larger cards */}
+        <div className="aspect-[4/5] bg-[#1A1A2E] overflow-hidden relative">
           <img 
             src={artwork.imageUrl} 
             alt={artwork.title} 
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
-          {/* Content badges */}
-          <div className="absolute top-2 left-2 flex gap-2 z-10">
+          {/* Content badges - increased size */}
+          <div className="absolute top-4 left-4 flex gap-3 z-10">
             {artwork.isNsfw && (
-              <Badge variant="destructive" className="bg-red-500/90 backdrop-blur-sm">
-                <AlertTriangle className="h-3 w-3 mr-1" />
+              <Badge variant="destructive" className="bg-red-500/90 backdrop-blur-sm text-base py-1.5 px-3">
+                <AlertTriangle className="h-4 w-4 mr-2" />
                 NSFW
               </Badge>
             )}
             {artwork.isAiGenerated && (
-              <Badge className="bg-purple-500/90 backdrop-blur-sm">
-                <Sparkles className="h-3 w-3 mr-1" />
+              <Badge className="bg-purple-500/90 backdrop-blur-sm text-base py-1.5 px-3">
+                <Sparkles className="h-4 w-4 mr-2" />
                 AI
               </Badge>
             )}
           </div>
 
-          {/* Hover Overlay */}
-          <div className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 flex flex-col justify-between p-4 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          {/* Hover Overlay - increased padding and text sizes */}
+          <div className={`absolute inset-0 bg-black/70 backdrop-blur-[2px] transition-opacity duration-300 flex flex-col justify-between p-6 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white truncate mb-1">{artwork.title}</h3>
+                <h3 className="text-2xl font-semibold text-white truncate mb-2">{artwork.title}</h3>
                 {artwork.description && (
-                  <p className="text-sm text-gray-200 line-clamp-2">{artwork.description}</p>
+                  <p className="text-base text-gray-200 line-clamp-3">{artwork.description}</p>
                 )}
               </div>
               <ArtworkActions 
@@ -64,28 +65,29 @@ export function ArtCard({ artwork, onAddToGallery }: ArtCardProps) {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="bg-black/40 hover:bg-black/60 text-white rounded-full h-8 w-8 p-0"
+                  className="bg-black/40 hover:bg-black/60 text-white rounded-full h-10 w-10 p-0"
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
               </ArtworkActions>
             </div>
 
-            <div className="flex gap-3 mt-auto">
+            {/* Bottom actions - increased size */}
+            <div className="flex gap-4 mt-auto">
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="text-white hover:bg-white/20 hover:text-white flex gap-2"
+                size="lg" 
+                className="text-white hover:bg-white/20 hover:text-white flex gap-3 text-lg"
               >
-                <Heart className="h-4 w-4" />
+                <Heart className="h-6 w-6" />
                 {artwork.likeCount}
               </Button>
               <Button 
                 variant="ghost" 
-                size="sm" 
-                className="text-white hover:bg-white/20 hover:text-white flex gap-2"
+                size="lg" 
+                className="text-white hover:bg-white/20 hover:text-white flex gap-3 text-lg"
               >
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className="h-6 w-6" />
                 0
               </Button>
             </div>
