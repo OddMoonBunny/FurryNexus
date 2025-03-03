@@ -12,6 +12,7 @@ import UserPage from "@/pages/user";
 import GalleryPage from "@/pages/gallery";
 import AdminPanel from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import { AgeGate } from "@/components/age-gate";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={() => <Redirect to="/browser" />} />
       <Route path="/browser" component={Browser} />
+      <Route path="/age-gate" component={AgeGate} />
       <Route path="/auth" component={Auth} />
       <Route path="/artwork/:id" component={ArtworkPage} />
       <Route path="/user/:id" component={UserPage} />
