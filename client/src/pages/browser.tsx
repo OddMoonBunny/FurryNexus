@@ -1,17 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArtGrid } from "@/components/artwork/art-grid";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import type { Artwork, Gallery } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "wouter";
+import { AgeGate } from "@/components/age-gate";
+import { useLocation } from "wouter";
 
 export default function Browser() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Check both localStorage and sessionStorage for age verification
+  const [isAgeVerified, setIsAgeVerified] = useState(() => {
+    return localStorage.getItem('age-verified') === 'true' || 
+           sessionStorage.getItem('age-verified') === 'true';
+  });
+
+  useEffect(() => {
+    // Check age verification on mount
+    if (!isAgeVerified) {
+      setLocation('/age-gate');
+    }
+  }, [isAgeVerified, setLocation]);
 
   const { data: artworks, isLoading: isLoadingArtworks } = useQuery<Artwork[]>({
     queryKey: ["/api/artworks"],
@@ -34,6 +48,10 @@ export default function Browser() {
     return true;
   });
 
+  if (!isAgeVerified) {
+    return <AgeGate />;
+  }
+
   return (
     <div className="min-h-screen bg-[#1A1A2E] pt-16">
       <div className="container mx-auto px-4">
@@ -53,13 +71,13 @@ export default function Browser() {
 
           <Tabs defaultValue="artworks" className="w-full">
             <TabsList className="bg-[#22223A] border-b border-[#32325D] w-full justify-start mb-6 rounded-none">
-              <TabsTrigger
+              <TabsTrigger 
                 value="artworks"
                 className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
               >
                 Artworks
               </TabsTrigger>
-              <TabsTrigger
+              <TabsTrigger 
                 value="galleries"
                 className="data-[state=active]:bg-[#1A1A2E] data-[state=active]:border-b-2 data-[state=active]:border-[#FF1B8D] data-[state=active]:rounded-none data-[state=active]:shadow-none"
               >
